@@ -9,4 +9,4 @@ include ${SOURCE_ROOT}/src/arch/riscv/kernel/Makefile
 include ${SOURCE_ROOT}/src/arch/riscv/machine/Makefile
 #include ${SOURCE_ROOT}/src/arch/riscv/fastpath/Makefile
 
-ARCH_ASM_SOURCES += head.S
+ARCH_ASM_SOURCES += head.S halt.S
