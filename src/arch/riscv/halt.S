@@ -10,22 +10,10 @@
 
 #include <machine/assembler.h>
 
-.code 32
 .section .text, "ax"
 
 BEGIN_FUNC(halt)
-    /* Disable interrupts */
-    cpsid iaf
-
-#ifdef DEBUG
-    /* print a message */
-    ldr r0, =halt_message
-    blx puts
-#endif
-
-    /* Halt */
-1:  mcr p15, 0, r0, c7, c0, 4
-    b 1b
+  nop
 END_FUNC(halt)
 
 #ifdef DEBUG
