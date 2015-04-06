@@ -21,6 +21,8 @@
 
 #include <arch/types.h>
 
+#define PAGE_BITS 12
+
 enum vm_fault_type {
     RISCVDataAbort = 0,
     RISCVPrefetchAbort = 1 
