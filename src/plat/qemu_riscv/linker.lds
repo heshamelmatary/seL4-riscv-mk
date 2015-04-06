@@ -8,11 +8,13 @@
  * @TAG(GD_GPL)
  */
 
+OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv", "elf32-littleriscv")
+OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* WARNING: constants also defined in plat/machine/hardware.h */
-KERNEL_BASE   = 0xf0000000;
-PHYS_BASE     = 0x80000000;
+KERNEL_BASE   = 0x00002000;
+PHYS_BASE     = 0x00002000;
 KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
 SECTIONS
