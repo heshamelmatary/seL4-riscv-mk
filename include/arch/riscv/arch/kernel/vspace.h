@@ -18,7 +18,8 @@
 void map_it_pt_cap(cap_t pt_cap);
 void map_it_frame_cap(cap_t frame_cap);
 void map_kernel_window(void);
-void map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights, vm_attributes_t vm_attributes);
+void map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights,
+vm_attributes_t vm_attributes);
 void activate_global_pd(void);
 
 /* ==================== BOOT CODE FINISHES HERE ==================== */

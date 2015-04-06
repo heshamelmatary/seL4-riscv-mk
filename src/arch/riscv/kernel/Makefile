@@ -8,8 +8,8 @@
 # @TAG(GD_GPL)
 #
 
-DIRECTORIES += src/arch/arm/kernel
+DIRECTORIES += src/arch/riscv/kernel
 
-C_SOURCES += src/arch/arm/kernel/thread.c \
-             src/arch/arm/kernel/vspace.c \
-             src/arch/arm/kernel/boot.c
+C_SOURCES += src/arch/riscv/kernel/thread.c \
+             src/arch/riscv/kernel/vspace.c \
+             src/arch/riscv/kernel/boot.c
