@@ -11,22 +11,21 @@
 #include <arch/machine/registerset.h>
 
 const register_t msgRegisters[] = {
-    R2, R3, R4, R5
+    X20, X21, X22, X23
 };
 
 const register_t frameRegisters[] = {
-    FaultInstruction, SP, CPSR,
-    R0, R1, R8, R9, R10, R11, R12
+    X18, X19, X20, X21, X22, X23, X24
 };
 
 const register_t gpRegisters[] = {
-    R2, R3, R4, R5, R6, R7, R14
+    X18, X19, X20, X21, X22, X23, X24
 };
 
 const register_t exceptionMessage[] = {
-    FaultInstruction, SP, CPSR
+    SP /* TODO: Add other realted registers */
 };
 
 const register_t syscallMessage[] = {
-    R0, R1, R2, R3, R4, R5, R6, R7, FaultInstruction, SP, LR, CPSR
+    X18, X19, X20, X21, X22, X23, X24, X25, SP 
 };

@@ -8,31 +8,15 @@
 # @TAG(GD_GPL)
 #
 
-DIRECTORIES += src/arch/arm/machine
+DIRECTORIES += src/arch/riscv/machine
 
-ARCH_C_SOURCES += machine/hardware.c \
-                  machine/registerset.c \
-                  machine/cache.c \
-                  machine/errata.c
+ARCH_C_SOURCES += machine/registerset.c
+#                  machine/cache.c \
+#                  machine/errata.c
 
-ifeq ($(CPU), cortex-a9)
-    ARCH_C_SOURCES += machine/gic_pl390.c
-    ARCH_C_SOURCES += machine/l2c_310.c
+#ARCH_C_SOURCES += machine/priv_timer.c
 
-ifeq ($(PLAT), exynos4)
-    # if exynos4412 has MPCORE peripherals, then
-    # samsung has NOT documented their location
-else
-    ARCH_C_SOURCES += machine/priv_timer.c
-endif
-
-endif
-
-ifeq ($(CPU), cortex-a15)
-    # A15 uses the gic_pl400 which is an extention of pl390
-    ARCH_C_SOURCES += machine/gic_pl390.c
-endif
 
 ifdef DEBUG
-    ARCH_C_SOURCES += machine/debug.c machine/capdl.c
+#    ARCH_C_SOURCES += machine/debug.c machine/capdl.c
 endif
