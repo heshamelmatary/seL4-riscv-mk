@@ -18,5 +18,5 @@ ARCH_C_SOURCES += machine/registerset.c
 
 
 ifdef DEBUG
-#    ARCH_C_SOURCES += machine/debug.c machine/capdl.c
+    ARCH_C_SOURCES += machine/debug.c machine/capdl.c
 endif
