@@ -15,10 +15,9 @@
 ### Build parameters
 ############################################################
 
-SEL4_ARCH_LIST:=aarch32 ia32
-ARCH_LIST:=arm x86
+ARCH_LIST:=aarch32 ia32 riscv
 CPU_LIST:=arm1136jf-s ixp420 cortex-a7 cortex-a8 cortex-a9 cortex-a15
-PLAT_LIST:=imx31 pc99 ixp420 omap3 am335x exynos4 exynos5 imx6 imx7 apq8064 zynq7000 allwinnerA20
+PLAT_LIST:=imx31 pc99 ixp420 omap3 am335x exynos4 exynos5 imx6 apq8064 zynq7000 allwinnerA20 qemu_riscv
 ARMV_LIST:=armv6 armv7-a
 
 ifndef SOURCE_ROOT
