@@ -10,7 +10,8 @@
 
 DIRECTORIES += src/arch/riscv/machine
 
-ARCH_C_SOURCES += machine/registerset.c
+ARCH_C_SOURCES += machine/registerset.c \
+									machine/hardware.c
 #                  machine/cache.c \
 #                  machine/errata.c
 
