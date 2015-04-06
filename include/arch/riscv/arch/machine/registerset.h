@@ -102,6 +102,7 @@ static inline word_t CONST
 sanitiseRegister(register_t reg, word_t v)
 {
   /* TODO */
+	return 0;
 }
 
 #endif /* __ASSEMBLER__ */
