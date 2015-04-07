@@ -119,5 +119,8 @@ init_kernel(
     vptr_t  v_entry
 )
 {
+  printf("Entered the kernel \n");
+  putDebugChar('X');
+  while(1);
 }
 
