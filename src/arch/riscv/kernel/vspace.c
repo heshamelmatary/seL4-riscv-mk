@@ -28,6 +28,8 @@
 #include <plat/machine/hardware.h>
 //#include <armv/context_switch.h>
 
+char riscv_kernel_stack[4096] ALIGN_BSS(4096) VISIBLE;
+
 struct resolve_ret {
     paddr_t frameBase;
     vm_page_size_t frameSize;
