@@ -108,6 +108,9 @@ try_init_kernel(
 )
 {
     /* kernel successfully initialized */
+    map_kernel_window();
+    
+    // page directory
     return true;
 }
 
