@@ -8,6 +8,10 @@
 
 _start:
 
+  /* 32-bit mode */
+  li s0, 0x1f0
+	csrc status, s0
+
   la s0, pg_dir
 	csrw ptbr, s0
 	csrw fatc, 0
@@ -27,7 +31,7 @@ _start:
 
   /* Try to write to unmapped address */
   add s2, x0, x0
-  li s2, 0x10000000
+  li s2, 0x0600000
 
   li x31, 0x1
   sw x31, 0(s2)
