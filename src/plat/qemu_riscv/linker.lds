@@ -20,7 +20,6 @@ KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 SECTIONS
 {
     . = KERNEL_BASE;
-
     .boot . : AT(ADDR(.boot) - KERNEL_OFFSET)
     {
         *(.boot.text)
