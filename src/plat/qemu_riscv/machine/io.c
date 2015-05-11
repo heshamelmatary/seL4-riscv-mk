@@ -103,20 +103,15 @@ static void uart_write_polled(char c)
 
 #ifdef DEBUG
 
-#define SYS_write 64
-#define SYS_exit 93
-#define SYS_stats 1234
-
-#define read_csr(reg) ({ unsigned long __tmp; \
-  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
-  __tmp; })
-
-#define write_csr(reg, val) \
-  asm volatile ("csrw " #reg ", %0" :: "r"(val))
-
-#define swap_csr(reg, val) ({ long __tmp; \
-  asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
-  __tmp; })
+void terminate (void)
+{
+  tohost_exit(0);
+}
+void tohost_exit(long code)
+{
+  write_csr(mtohost, (code << 1) | 1);
+  while (1);
+}
 
 volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
 
@@ -127,8 +122,8 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
   magic_mem[2] = arg1;
   magic_mem[3] = arg2;
   __sync_synchronize();
-  write_csr(tohost, (uint64_t)magic_mem); 
-  while (swap_csr(fromhost, 0) == 0);
+  write_csr(mtohost, (long)magic_mem);
+  while (swap_csr(mfromhost, 0) == 0);
   return magic_mem[0];
 }
 
@@ -145,8 +140,8 @@ long handle_trap(long cause, long epc, uint64_t regs[32])
     //tohost_exit(1337);
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
-  else if (regs[17] == SYS_stats)
-    sys_ret = handle_stats(regs[10]);
+  //else if (regs[17] == SYS_stats)
+    //sys_ret = handle_stats(regs[10]);
   else
     sys_ret = handle_frontend_syscall(regs[17], regs[10], regs[11], regs[12]);
 

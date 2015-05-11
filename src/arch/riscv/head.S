@@ -1,4 +1,3 @@
-#define MSTATUS_PRV         0x00000060
 #define MSTATUS_SSIP        0x00000002
 #define MSTATUS_HSIP        0x00000004
 #define MSTATUS_MSIP        0x00000008
@@ -67,8 +66,7 @@
 .extern riscv_kernel_stack
 
 
-_start:
-
+_start:  
   li x1, 0
   li x2, 0
   li x3, 0
@@ -110,13 +108,15 @@ _start:
   */
   /*csrs mstatus, MSTATUS_PRV1*/
   
-  #li t0, MSTATUS_PRV; csrs mstatus, t0 # run tests in user mode
-  li t0, MSTATUS_IE1; csrs mstatus, t0 # enable interrupts in user mode
+  li t0, MSTATUS_PRV
+  csrs mstatus, t0 # machine mode
+  li t0, MSTATUS_IE
+  csrs mstatus, t0 # enable interrupts in user mode
   #li t0, MSTATUS_FS; csrc mstatus, t0 # enable FPU
   #li t0, MSTATUS_XS; csrc mstatus, t0 # enable accelerator
-  li t0, ((MSTATUS64_UA & ~(MSTATUS64_UA << 1)) * UA_RV64) >> 31
+  #li t0, ((MSTATUS64_UA & ~(MSTATUS64_UA << 1)) * UA_RV64) >> 31
   #sll t0, t0, 31
-  li t1, ((MSTATUS64_SA & ~(MSTATUS64_SA << 1)) * UA_RV64) >> 31
+  #li t1, ((MSTATUS64_SA & ~(MSTATUS64_SA << 1)) * UA_RV64) >> 31
   sll t1, t1, 31
   
   #ifdef __riscv64
@@ -130,8 +130,8 @@ _start:
   #csrs mstatus, t1
   #else
   # disable RV64 for user and supervisor
-  csrc mstatus, t0
-  csrc mstatus, t1
+  #csrc mstatus, t0
+  #csrc mstatus, t1
   #endif
   /*csrr t0, mstatus
   li t1, MSTATUS_XS
