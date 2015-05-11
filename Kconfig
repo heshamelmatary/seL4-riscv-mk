@@ -37,6 +37,9 @@ menu "seL4 System"
 
         config ARCH_ARM
             bool "ARM"
+
+        config ARCH_RISCV
+            bool "RISCV"
     endchoice
 
 config ARCH_IA32
