@@ -173,21 +173,28 @@ void printstr(char *s)
   syscall(SYS_write, 1, (long) s, strlen(s));
 }
 
-static void put_char(const char* s)
+int putchar(int ch)
 {
-  syscall(SYS_write, 1, (long)s, 1);
+  static __thread char buf[64] __attribute__((aligned(64)));
+  static __thread int buflen = 0;
+  buf[buflen++] = ch;
+  if (ch == '\n' || buflen == sizeof(buf))
+  {
+    syscall(SYS_write, 1, (long)buf, buflen);
+    buflen = 0;
+  }
+  return 0;
 }
 
 void
 qemu_uart_putchar(char c)
 {
-  put_char(&c);
-  
+  //putchar((int) c); 
 }
 
 void putDebugChar(unsigned char c)
 {
-  qemu_uart_putchar(c);
+  putchar(c);
 }
 
 unsigned char getDebugChar(void)

@@ -14,11 +14,10 @@
 #include <types.h>
 
 #ifdef DEBUG
-void qemu_uart_putchar(char c);
 void putDebugChar(unsigned char c);
 unsigned char getDebugChar(void);
 
-#define kernel_putchar(c) qemu_uart_putchar(c)
+#define kernel_putchar(c) putDebugChar(c) 
 #else /* !DEBUG */
 #define kernel_putchar(c) ((void)(0))
 #endif

@@ -166,16 +166,13 @@ init_kernel(
     vptr_t  v_entry
 )
 {
-  
-  printstr("********* Platform Information ********** \n");
-  //init_plat();
+  printf("********* Platform Information ********** \n");
+  init_plat();
   
   //vm_boot(&init_kernel, 1337);
-  printstr("Initializing platform ...... \n");
+  printf("Initializing platform ...... \n");
   printstr("Entered the kernel \n");
-  
-  //printf("Entered the kernel \n");
-  //putDebugChar('X');
+
   terminate(0);
   while(1);
 }
