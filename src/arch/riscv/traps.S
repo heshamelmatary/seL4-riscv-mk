@@ -20,8 +20,9 @@
 trap_entry:
   addi sp, sp, -272
 
+  #SREG x2, 16(sp)
   /*SREG x1, 8(sp)
-  SREG x2, 16(sp)
+  
   SREG x3, 24(sp)
   SREG x4, 32(sp)
   SREG x5, 40(sp)
@@ -53,22 +54,21 @@ trap_entry:
   SREG x31, 248(sp)
   */
   
-  #csrr t0, sup0
-  #csrr t1, mstatus
+  #csrr t0, msup0
+  csrr t1, mstatus
   #SREG t0, 256(sp)
-  #SREG t1, 264(sp)
+  SREG t1, 264(sp)
 
-  #csrr a0, mcause
-  #csrr a1, mepc 
+  csrr a0, mcause
+  csrr a1, mepc 
   mv a2, sp
   jal handle_trap
   csrw mepc, a0
 
   #LREG t0, 256(sp)
-  #LREG t1, 264(sp)
+  LREG t1, 264(sp)
   #csrw sup0, t0
-  #csrw mstatus, t1
-
+  csrw mstatus, t1
   
   /*LREG x1, 8(sp)
   
@@ -97,8 +97,8 @@ trap_entry:
   LREG x25, 200(sp)
   LREG x26, 208(sp)
   */
-  LREG x2, 16(sp)
+  #LREG x2, 16(sp)
   
   addi sp, sp, 272 
-  sret
+  eret
   

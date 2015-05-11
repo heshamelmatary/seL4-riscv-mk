@@ -13,18 +13,18 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* WARNING: constants also defined in plat/machine/hardware.h */
-KERNEL_BASE   = 0x00000100;
-PHYS_BASE     = 0x00000100;
+KERNEL_BASE   = 0x00000200;
+PHYS_BASE     = 0x00000200;
 KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
 SECTIONS
 {
-    .syscall 0xc0:
+    .syscall 0x1c0:
     {
         *(.syscall) 
     }
 
-    .vector 0x100: /*AT(ADDR(.vector) - KERNEL_OFFSET)*/
+    .vector 0x200: /*AT(ADDR(.vector) - KERNEL_OFFSET)*/
     {
         *(.vector)
     }

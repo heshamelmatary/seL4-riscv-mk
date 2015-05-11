@@ -27,41 +27,15 @@
 void trap_entry();
 void pop_tf(trapframe_t*);
 
-static void cputchar(int x)
-{
-  while (swap_csr(tohost, 0x0101000000000000 | (unsigned char)x));
-  while (swap_csr(fromhost, 0) == 0);
-}
-
-static void cputstring(const char* s)
-{
-  while(*s)
-    cputchar(*s++);
-}
-
-static void terminate(int code)
-{
-  while (swap_csr(tohost, code));
-  while (1);
-}
-
-#define stringify1(x) #x
-#define stringify(x) stringify1(x)
-#define assert(x) do { \
-  if (x) break; \
-  cputstring("Assertion failed: " stringify(x) "\n"); \
-  terminate(3); \
-} while(0)
-
 typedef struct { pte_tt addr; void* next; } freelist_t;
 
-pte_tt l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
+/*pte_tt l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 pte_tt l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 pte_tt l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
 freelist_t user_mapping[MAX_TEST_PAGES];
 freelist_t freelist_nodes[MAX_TEST_PAGES];
 freelist_t *freelist_head, *freelist_tail;
-
+*/
 /* pointer to the end of boot code/data in kernel image */
 /* need a fake array to get the pointer from the linker script */
 extern char ki_boot_end[1];
@@ -152,7 +126,7 @@ try_init_kernel(
     // page directory
     return true;
 }
-
+/*
 void vm_boot(long test_addr, long seed)
 {
   while (read_csr(hartid) > 0); // only core 0 proceeds
@@ -183,7 +157,7 @@ void vm_boot(long test_addr, long seed)
   tf.epc = test_addr;
   //pop_tf(&tf);
 }
-
+*/
 BOOT_CODE VISIBLE void
 init_kernel(
     paddr_t ui_p_reg_start,
