@@ -12,6 +12,7 @@
 #include <util.h>
 #include <machine/io.h>
 #include <plat/machine/devices.h>
+#include <arch/machine.h>
 
 #define UART_REG(x)      (*((volatile char *) (x)))
 
@@ -102,10 +103,91 @@ static void uart_write_polled(char c)
 
 #ifdef DEBUG
 
+#define SYS_write 64
+#define SYS_exit 93
+#define SYS_stats 1234
+
+#define read_csr(reg) ({ unsigned long __tmp; \
+  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
+  __tmp; })
+
+#define write_csr(reg, val) \
+  asm volatile ("csrw " #reg ", %0" :: "r"(val))
+
+#define swap_csr(reg, val) ({ long __tmp; \
+  asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
+  __tmp; })
+
+volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
+
+static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
+{
+  magic_mem[0] = which;
+  magic_mem[1] = arg0;
+  magic_mem[2] = arg1;
+  magic_mem[3] = arg2;
+  __sync_synchronize();
+  write_csr(tohost, (uint64_t)magic_mem); 
+  while (swap_csr(fromhost, 0) == 0);
+  return magic_mem[0];
+}
+
+long handle_trap(long cause, long epc, uint64_t regs[32])
+{
+  int* csr_insn;
+  asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
+  long sys_ret = 0;
+
+  if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
+      (*(int*)epc & *csr_insn) == *csr_insn)
+    ;   
+  //else if (cause != CAUSE_SYSCALL)
+    //tohost_exit(1337);
+  else if (regs[17] == SYS_exit)
+    tohost_exit(regs[10]);
+  else if (regs[17] == SYS_stats)
+    sys_ret = handle_stats(regs[10]);
+  else
+    sys_ret = handle_frontend_syscall(regs[17], regs[10], regs[11], regs[12]);
+
+  regs[10] = sys_ret;
+  return epc+4;
+}
+
+static long syscall(long num, long arg0, long arg1, long arg2)
+{
+  register long a7 asm("a7") = num;
+  register long a0 asm("a0") = arg0;
+  register long a1 asm("a1") = arg1;
+  register long a2 asm("a2") = arg2;
+  asm volatile ("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+  return a0;
+}
+
+static uint32_t strlen(char *s)
+{
+  uint32_t counter = 0;
+  while (*s++ != '\0')
+    ++counter;
+    
+  return counter;
+}
+
+void printstr(char *s)
+{  
+  syscall(SYS_write, 1, (long) s, strlen(s));
+}
+
+static void put_char(const char* s)
+{
+  syscall(SYS_write, 1, (long)s, 1);
+}
+
 void
 qemu_uart_putchar(char c)
 {
-  uart_write_polled(c);
+  put_char(&c);
+  
 }
 
 void putDebugChar(unsigned char c)
