@@ -103,16 +103,6 @@ static void uart_write_polled(char c)
 
 #ifdef DEBUG
 
-void terminate (void)
-{
-  tohost_exit(0);
-}
-void tohost_exit(long code)
-{
-  write_csr(mtohost, (code << 1) | 1);
-  while (1);
-}
-
 volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
 
 static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
@@ -140,6 +130,7 @@ long handle_trap(long cause, long epc, uint64_t regs[32])
     //tohost_exit(1337);
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
+
   //else if (regs[17] == SYS_stats)
     //sys_ret = handle_stats(regs[10]);
   else
@@ -155,8 +146,19 @@ static long syscall(long num, long arg0, long arg1, long arg2)
   register long a0 asm("a0") = arg0;
   register long a1 asm("a1") = arg1;
   register long a2 asm("a2") = arg2;
-  asm volatile ("scall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+  asm volatile ("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
   return a0;
+}
+
+void terminate (void)
+{
+  syscall(SYS_exit, 0, (long) 0, 0);
+}
+
+void tohost_exit(long code)
+{
+  write_csr(mtohost, (code << 1) | 1);
+  while (1);
 }
 
 static uint32_t strlen(char *s)

@@ -1,59 +1,17 @@
-#define MSTATUS_SSIP        0x00000002
-#define MSTATUS_HSIP        0x00000004
-#define MSTATUS_MSIP        0x00000008
-#define MSTATUS_IE          0x00000010
-#define MSTATUS_PRV         0x00000060
-#define MSTATUS_IE1         0x00000080
-#define MSTATUS_PRV1        0x00000300
-#define MSTATUS_IE2         0x00000400
-#define MSTATUS_PRV2        0x00001800
-#define MSTATUS_IE3         0x00002000
-#define MSTATUS_PRV3        0x0000C000
-#define MSTATUS_MPRV        0x00030000
-#define MSTATUS_VM          0x00780000
-#define MSTATUS_STIE        0x01000000
-#define MSTATUS_HTIE        0x02000000
-#define MSTATUS_MTIE        0x04000000
-#define MSTATUS_FS          0x18000000
-#define MSTATUS_XS          0x60000000
+#define MSTATUS_IE          0x00000001
+#define MSTATUS_PRV         0x00000006
+#define MSTATUS_IE1         0x00000008
+#define MSTATUS_PRV1        0x00000030
+#define MSTATUS_IE2         0x00000040
+#define MSTATUS_PRV2        0x00000180
+#define MSTATUS_IE3         0x00000200
+#define MSTATUS_PRV3        0x00000C00
+#define MSTATUS_FS          0x00003000
+#define MSTATUS_XS          0x0000C000
+#define MSTATUS_MPRV        0x00010000
+#define MSTATUS_VM          0x003E0000
 #define MSTATUS32_SD        0x80000000
-#define MSTATUS64_UA        0x0000000F00000000
-#define MSTATUS64_SA        0x000000F000000000
-#define MSTATUS64_HA        0x00000F0000000000
 #define MSTATUS64_SD        0x8000000000000000
-
-#define SSTATUS_SIP         0x00000002
-#define SSTATUS_IE          0x00000010
-#define SSTATUS_PIE         0x00000080
-#define SSTATUS_PS          0x00000100
-#define SSTATUS_UA          0x000F0000
-#define SSTATUS_TIE         0x01000000
-#define SSTATUS_TIP         0x04000000
-#define SSTATUS_FS          0x18000000
-#define SSTATUS_XS          0x60000000
-#define SSTATUS32_SD        0x80000000
-#define SSTATUS64_SD        0x8000000000000000
-
-#define PRV_U 0
-#define PRV_S 1
-#define PRV_H 2
-#define PRV_M 3
-
-#define VM_MBARE 0
-#define VM_MBB   1
-#define VM_MBBID 2
-#define VM_SV32  4
-#define VM_SV39  5
-#define VM_SV48  6
-
-#define UA_RV32  0
-#define UA_RV64  4
-#define UA_RV128 8
-
-#define IRQ_TIMER  0
-#define IRQ_IPI    1
-#define IRQ_HOST   2
-#define IRQ_COP    3
 
 .section .vector, "ax"
   j _start
@@ -99,7 +57,7 @@ _start:
   li x30,0
   li x31,0
  
-  #li t0, MSTATUS_PRV1; csrc mstatus, t0 # run tests in user mode
+  #li t0, 0x00000002; csrc mstatus, t0 # run tests in supervisor mode
   li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
   
   la a0, init_kernel
