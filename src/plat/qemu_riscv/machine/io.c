@@ -124,10 +124,12 @@ long handle_trap(long cause, long epc, uint64_t regs[32])
   long sys_ret = 0;
 
   if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
-      (*(int*)epc & *csr_insn) == *csr_insn)
-    ;   
-  //else if (cause != CAUSE_SYSCALL)
-    //tohost_exit(1337);
+      (*(int*)epc & *csr_insn) == *csr_insn);   
+  else if(cause == CAUSE_FAULT_STORE)
+  {
+    printf("EXCEPTION: store fault! \n");
+    terminate(0);
+  }
   else if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
 
