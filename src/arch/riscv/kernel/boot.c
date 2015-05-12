@@ -29,13 +29,10 @@ void pop_tf(trapframe_t*);
 
 typedef struct { pte_tt addr; void* next; } freelist_t;
 
-/*pte_tt l1pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_tt l2pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-pte_tt l3pt[PTES_PER_PT] __attribute__((aligned(PGSIZE)));
-freelist_t user_mapping[MAX_TEST_PAGES];
-freelist_t freelist_nodes[MAX_TEST_PAGES];
-freelist_t *freelist_head, *freelist_tail;
-*/
+pte_tt l1pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
+pte_tt l2pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
+pte_tt l3pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
+
 /* pointer to the end of boot code/data in kernel image */
 /* need a fake array to get the pointer from the linker script */
 extern char ki_boot_end[1];
@@ -126,38 +123,27 @@ try_init_kernel(
     // page directory
     return true;
 }
-/*
+
 void vm_boot(long test_addr, long seed)
 {
-  while (read_csr(hartid) > 0); // only core 0 proceeds
+  while (read_csr(mhartid) > 0); // only core 0 proceeds
   long i = 0;
   //assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  l1pt[0] = ((pte_tt)l2pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
-  l2pt[0] = ((pte_tt)l3pt >> PGSHIFT << PTE_PPN_SHIFT) | PTE_TYPE_TABLE;
+  /*  4 MB */
+  for(i = 0; i < 1024; i++)
+    l1pt[i] = i <<  RISCV_PGSHIFT | PTE_TYPE_SRWX_GLOBAL | PTE_V;
+
   write_csr(sptbr, l1pt);
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
   clear_csr(mstatus, MSTATUS_VM | MSTATUS_PRV1);
   set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
-  //set_csr(mstatus, (long)UA_RV32 << __builtin_ctzl(MSTATUS_UA));
 
-  seed = 1 + (seed % MAX_TEST_PAGES);
-  freelist_head = &freelist_nodes[0];
-  freelist_tail = &freelist_nodes[MAX_TEST_PAGES-1];
-  for (i = 0; i < MAX_TEST_PAGES; i++)
-  {
-    freelist_nodes[i].addr = (MAX_TEST_PAGES + seed)*PGSIZE;
-    freelist_nodes[i].next = &freelist_nodes[i+1];
-    seed = LFSR_NEXT(seed);
-  }
-  freelist_nodes[MAX_TEST_PAGES-1].next = 0;
-
-  trapframe_t tf;
-  //memset(&tf, 0, sizeof(tf));
-  tf.epc = test_addr;
-  //pop_tf(&tf);
+  /* Set to supervisor mode */
+  clear_csr(mstatus, (long)PRV_H << __builtin_ctzl(MSTATUS_PRV));
+  //clear_csr(mstatus, MSTATUS_PRV);
 }
-*/
+
 BOOT_CODE VISIBLE void
 init_kernel(
     paddr_t ui_p_reg_start,
@@ -168,10 +154,10 @@ init_kernel(
 {
   printf("********* Platform Information ********** \n");
   init_plat();
-  
-  //vm_boot(&init_kernel, 1337);
+
+  //set_csr(mstatus,PRV_U);
+  vm_boot(&init_kernel, 1337);
   printf("Initializing platform ...... \n");
-  printstr("Entered the kernel \n");
 
   terminate(0);
   while(1);

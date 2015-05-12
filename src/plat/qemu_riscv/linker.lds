@@ -19,7 +19,7 @@ KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
 SECTIONS
 {
-    .syscall 0x1c0:
+    .syscall 0x100:
     {
         *(.syscall) 
     }
