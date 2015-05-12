@@ -29,7 +29,9 @@ void pop_tf(trapframe_t*);
 
 typedef struct { pte_tt addr; void* next; } freelist_t;
 
-pte_tt l1pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
+char test_area[4096] __attribute__((aligned(4*1024*1024)));
+
+uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
 pte_tt l2pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
 pte_tt l3pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
 
@@ -132,7 +134,11 @@ void vm_boot(long test_addr, long seed)
 
   /*  4 MB */
   for(i = 0; i < 1024; i++)
-    l1pt[i] = i <<  RISCV_PGSHIFT | PTE_TYPE_SRWX_GLOBAL | PTE_V;
+    l1pt[i] = i <<  PTE_PPN_SHIFT | PTE_TYPE_SRWX |  PTE_V;
+
+  uint32_t pteidx = ((uint32_t) &test_area) & (1 << RISCV_PGSHIFT);
+
+  l1pt[2] = 0;
 
   write_csr(sptbr, l1pt);
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
@@ -143,6 +149,7 @@ void vm_boot(long test_addr, long seed)
   clear_csr(mstatus, (long)PRV_H << __builtin_ctzl(MSTATUS_PRV));
   //clear_csr(mstatus, MSTATUS_PRV);
 }
+
 
 BOOT_CODE VISIBLE void
 init_kernel(
@@ -158,7 +165,11 @@ init_kernel(
   //set_csr(mstatus,PRV_U);
   vm_boot(&init_kernel, 1337);
   printf("Initializing platform ...... \n");
-
+  printf("Trying to write to invalid page ... \n");
+  
+  test_area[0] = 0xDEADBEAF;
+ 
+  printf("Exiting....\n");
   terminate(0);
   while(1);
 }
