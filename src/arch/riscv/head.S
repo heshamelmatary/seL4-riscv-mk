@@ -57,36 +57,13 @@ _start:
   li x30,0
   li x31,0
  
-  #li t0, 0x00000002; csrc mstatus, t0 # run tests in supervisor mode
+  #li t0, 0x00000004; csrc mstatus, t0 # run in supervisor mode
   li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
   
-  la a0, init_kernel
-
-  /* Set the first PTE - Test */
-  /*la s1, pg_dir
-  ori s2, s2, 0b111000101
-  sw s2, 0(s1)
-  */
-  /* Enable VM */
-  /*li s0, 0x80
-	csrs status, s0
-  */
-  /* Try to write to unmapped address */
-  /*add s2, x0, x0
-  li s2, 0x0600000
-  
-  
-  li x31, 0x1
-  sw x31, 0(s2)
-  */
-/*_loop:
-  nop
-  jal _loop
-  nop
- */ 
+  la sp, (riscv_kernel_stack + 1024 * 1024)
 
   la s0, init_kernel
-  jr s0
+  jr s0  
 
 __clzsi2:
   nop

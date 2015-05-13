@@ -134,19 +134,19 @@ void vm_boot(long test_addr, long seed)
 
   /*  4 MB */
   for(i = 0; i < 1024; i++)
-    l1pt[i] = i <<  PTE_PPN_SHIFT | PTE_TYPE_SRWX |  PTE_V;
+    l1pt[i] = i <<  20 | PTE_TYPE_SRWX_GLOBAL |  PTE_V;
 
   uint32_t pteidx = ((uint32_t) &test_area) & (1 << RISCV_PGSHIFT);
 
-  l1pt[2] = 0;
+  l1pt[2] = 2 <<  20 | PTE_TYPE_SRX_GLOBAL |  PTE_V;
 
   write_csr(sptbr, l1pt);
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_FS | MSTATUS_XS | MSTATUS_MPRV);
-  clear_csr(mstatus, MSTATUS_VM | MSTATUS_PRV1);
+  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_MPRV);
+  clear_csr(mstatus, MSTATUS_VM);
   set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
 
   /* Set to supervisor mode */
-  clear_csr(mstatus, (long)PRV_H << __builtin_ctzl(MSTATUS_PRV));
+  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
   //clear_csr(mstatus, MSTATUS_PRV);
 }
 
