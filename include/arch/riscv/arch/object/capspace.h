@@ -140,11 +140,9 @@ cap_get_capExtraComp(cap_t cap)
             return 0;
         }
         switch (cap_frame_cap_get_capFSize(cap)) {
-        case RISCVSmallPage:
-        case RISCVLargePage:
+        case RISCVNormalPage:
             return PTE_REF(PTE_PTR(cap_frame_cap_get_capFMappedObject(cap)) + cap_frame_cap_get_capFMappedIndex(cap));
-        case RISCVSection:
-        case RISCVSuperSection:
+        case RISCVMegaPage:
             return PDE_REF(PDE_PTR(cap_frame_cap_get_capFMappedObject(cap)) + cap_frame_cap_get_capFMappedIndex(cap));
         default:
             fail ("Unknown frame size");

@@ -86,7 +86,7 @@ typedef uint32_t pde_type_t;
 #define WORD_REF(p) ((unsigned int)(p))
 
 struct user_data {
-    word_t words[BIT(RISCVSmallPageBits) / sizeof(word_t)];
+    word_t words[BIT(RISCVNormalPageBits) / sizeof(word_t)];
 };
 
 typedef struct user_data user_data_t;
