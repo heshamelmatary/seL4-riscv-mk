@@ -60,7 +60,7 @@ _start:
   #li t0, 0x00000004; csrc mstatus, t0 # run in supervisor mode
   li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
   
-  la sp, (riscv_kernel_stack + 1024 * 1024)
+  la sp, (riscv_kernel_stack + 4096)
 
   la s0, init_kernel
   jr s0  
@@ -69,9 +69,3 @@ __clzsi2:
   nop
 __ctzsi2:
   nop
-
-.balign 0x1000
-pg_dir:
-.fill (pg_dir + 0x1000) - ., 1, 0x00
-.end    pg_dir
-.size   pg_dir, .-pg_dir

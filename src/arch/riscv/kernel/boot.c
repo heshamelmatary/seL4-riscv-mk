@@ -120,30 +120,13 @@ try_init_kernel(
 )
 {
     /* kernel successfully initialized */
-    map_kernel_window();
-    
-    // page directory
-    return true;
-}
 
-void vm_boot(long test_addr, long seed)
-{
   while (read_csr(mhartid) > 0); // only core 0 proceeds
-  long i = 0;
-  //assert(SIZEOF_TRAPFRAME_T == sizeof(trapframe_t));
 
-  /*  4 MB */
-  for(i = 0; i < 1024; i++)
-    l1pt[i] = i <<  20 | PTE_TYPE_SRWX |  PTE_V;
-
-  uint32_t pteidx = ((uint32_t) &test_area) & (1 << RISCV_PGSHIFT);
-
-  l1pt[2] = 2 <<  20 | PTE_TYPE_SRX_GLOBAL |  PTE_V;
-
-  write_csr(sptbr, l1pt);
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_MPRV);
+  map_kernel_window();
 
   /* Set next level of trap stack to machine mode */
+  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_MPRV);
   set_csr(mstatus, MSTATUS_PRV1);
   clear_csr(mstatus, MSTATUS_VM);
 
@@ -151,9 +134,10 @@ void vm_boot(long test_addr, long seed)
 
   /* Set to supervisor mode */
   clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
-  //clear_csr(mstatus, MSTATUS_PRV);
+    
+    // page directory
+  return true;
 }
-
 
 BOOT_CODE VISIBLE void
 init_kernel(
@@ -166,13 +150,14 @@ init_kernel(
   printf("********* Platform Information ********** \n");
   init_plat();
 
-  //set_csr(mstatus,PRV_U);
-  vm_boot(&init_kernel, 1337);
+  try_init_kernel(0x00000000,
+                  0xFFFFFFFF,
+                  0xF0000000,
+                  0xF0000000);
+  
   printf("Initializing platform ...... \n");
   printf("Trying to write to invalid page ... \n");
-  
-  test_area[0] = 0xDEADBEAF;
- 
+  test_area[4096] = 0xD;
   printf("Exiting....\n");
   terminate(0);
   while(1);

@@ -66,13 +66,41 @@ map_it_pt_cap(cap_t pd_cap)
 }
 
 BOOT_CODE void
-map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights, vm_attributes_t attributes)
+map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
 {
+
+    /* First level page table */
+    uint32_t idx1 = VIRT1_TO_IDX(vaddr);
+    uint32_t idx2 = VIRT0_TO_IDX(vaddr);
+
+    l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
+    l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
+
+    /*assert(vaddr >= PPTR_TOP); /* vaddr lies in the region the global PT covers */
+   
 }
 
 BOOT_CODE void
 map_kernel_window(void)
 {
+    paddr_t  phys;
+    uint32_t idx;
+    pde_t    pde;
+    long     i;
+
+    /* mapping of kernelBase (virtual address) to kernel's physBase  */
+    /* up to end of virtual address space minus 16M using 16M frames */
+    phys = physBase;
+    idx = VIRT1_TO_IDX(kernelBase);
+
+  /*  4 MB Mega Pages */
+  for(i = 0; i < 1024; i++)
+    l1pt[i] = PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+
+  map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
+
+  write_csr(sptbr, l1pt);
+
 }
 
 BOOT_CODE void
