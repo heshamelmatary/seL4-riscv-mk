@@ -117,20 +117,20 @@ static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
   return magic_mem[0];
 }
 
-long handle_trap(long cause, long epc, uint64_t regs[32])
+long handle_trap(uint32_t cause, uint32_t epc, uint64_t regs[32])
 {
   int* csr_insn;
-  asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
+  //asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));
   long sys_ret = 0;
 
-  if (cause == CAUSE_ILLEGAL_INSTRUCTION &&
-      (*(int*)epc & *csr_insn) == *csr_insn);   
-  else if(cause == CAUSE_FAULT_STORE)
+  if(cause == CAUSE_FAULT_STORE)
   {
-    printf("EXCEPTION: store fault! \n");
+    printf("EXCEPTION: store fault epc = %x! \n", epc);
+    
     terminate(0);
-  }
-  else if (regs[17] == SYS_exit)
+  } 
+  
+  if (regs[17] == SYS_exit)
     tohost_exit(regs[10]);
 
   //else if (regs[17] == SYS_stats)
