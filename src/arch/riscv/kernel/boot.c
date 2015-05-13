@@ -134,7 +134,7 @@ void vm_boot(long test_addr, long seed)
 
   /*  4 MB */
   for(i = 0; i < 1024; i++)
-    l1pt[i] = i <<  20 | PTE_TYPE_SRWX_GLOBAL |  PTE_V;
+    l1pt[i] = i <<  20 | PTE_TYPE_SRWX |  PTE_V;
 
   uint32_t pteidx = ((uint32_t) &test_area) & (1 << RISCV_PGSHIFT);
 
@@ -142,7 +142,11 @@ void vm_boot(long test_addr, long seed)
 
   write_csr(sptbr, l1pt);
   set_csr(mstatus, MSTATUS_IE1 | MSTATUS_MPRV);
+
+  /* Set next level of trap stack to machine mode */
+  set_csr(mstatus, MSTATUS_PRV1);
   clear_csr(mstatus, MSTATUS_VM);
+
   set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
 
   /* Set to supervisor mode */
