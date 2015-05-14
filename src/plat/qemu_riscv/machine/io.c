@@ -105,6 +105,27 @@ static void uart_write_polled(char c)
 
 volatile uint64_t magic_mem[8] __attribute__((aligned(64)));
 
+static long syscall(long num, long arg0, long arg1, long arg2)
+{
+  register long a7 asm("a7") = num;
+  register long a0 asm("a0") = arg0;
+  register long a1 asm("a1") = arg1;
+  register long a2 asm("a2") = arg2;
+  asm volatile ("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
+  return a0;
+}
+
+void halt ()
+{
+  syscall(SYS_exit, 0, (long) 0, 0);
+}
+
+PHYS_CODE void tohost_exit(long code)
+{
+  write_csr(mtohost, (code << 1) | 1);
+  while (1);
+}
+
 PHYS_CODE static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
   magic_mem[0] = which;
@@ -127,7 +148,7 @@ PHYS_CODE VISIBLE long handle_trap(uint32_t cause, uint32_t epc, uint64_t regs[3
   {
     printf("EXCEPTION: store fault epc = %x! \n", epc);
     
-    terminate(0);
+    halt();
   } 
   
   if (regs[17] == SYS_exit)
@@ -140,27 +161,6 @@ PHYS_CODE VISIBLE long handle_trap(uint32_t cause, uint32_t epc, uint64_t regs[3
 
   regs[10] = sys_ret;
   return epc+4;
-}
-
-static long syscall(long num, long arg0, long arg1, long arg2)
-{
-  register long a7 asm("a7") = num;
-  register long a0 asm("a0") = arg0;
-  register long a1 asm("a1") = arg1;
-  register long a2 asm("a2") = arg2;
-  asm volatile ("ecall" : "+r"(a0) : "r"(a1), "r"(a2), "r"(a7));
-  return a0;
-}
-
-void terminate (void)
-{
-  syscall(SYS_exit, 0, (long) 0, 0);
-}
-
-PHYS_CODE VISIBLE void tohost_exit(long code)
-{
-  write_csr(mtohost, (code << 1) | 1);
-  while (1);
 }
 
 static uint32_t strlen(char *s)

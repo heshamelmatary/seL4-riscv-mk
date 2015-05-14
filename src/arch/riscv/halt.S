@@ -12,10 +12,6 @@
 
 .section .text, "ax"
 
-BEGIN_FUNC(halt)
-  nop
-END_FUNC(halt)
-
 #ifdef DEBUG
 .section .rodata
 halt_message:
