@@ -26,9 +26,14 @@
 #include <arch/object/tcb.h>
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
-//#include <armv/context_switch.h>
 
-char riscv_kernel_stack[1024*1024] ALIGN_BSS(4096) VISIBLE;
+/* FIXME: %s/uint32_t/pte_t */
+uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+uint32_t l2pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+/* This is only needed for 64-bit implementation, keep it for future */
+uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+
+char riscv_kernel_stack[1024*1024] __attribute__((aligned(4096))) BOOT_DATA;
 
 struct resolve_ret {
     paddr_t frameBase;
@@ -80,7 +85,7 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
    
 }
 
-BOOT_CODE void
+PHYS_CODE VISIBLE void
 map_kernel_window(void)
 {
     paddr_t  phys;
@@ -90,17 +95,33 @@ map_kernel_window(void)
 
     /* mapping of kernelBase (virtual address) to kernel's physBase  */
     /* up to end of virtual address space minus 16M using 16M frames */
-    phys = physBase;
-    idx = VIRT1_TO_IDX(kernelBase);
+    phys = VIRT1_TO_IDX(0x00000000);
+    idx  = VIRT1_TO_IDX(kernelBase);
+
+  for(i = 0; i < idx ; i++)
+  {
+    l1pt[i] = PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  }
 
   /*  4 MB Mega Pages */
-  for(i = 0; i < 1024; i++)
-    l1pt[i] = PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  for(i = 0; idx < 1024 ; idx++, phys++)
+  {
+    l1pt[idx] = PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  }
 
-  map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
+   l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
 
   write_csr(sptbr, l1pt);
 
+  set_csr(mstatus, MSTATUS_IE1);
+  set_csr(mstatus, MSTATUS_PRV1);
+  clear_csr(mstatus, MSTATUS_VM);
+
+  set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
+
+  /* Set to supervisor mode */
+  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
 }
 
 BOOT_CODE void

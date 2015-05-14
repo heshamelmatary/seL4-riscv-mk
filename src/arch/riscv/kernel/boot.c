@@ -29,11 +29,7 @@ void pop_tf(trapframe_t*);
 
 typedef struct { pte_tt addr; void* next; } freelist_t;
 
-char test_area[4096] __attribute__((aligned(4*1024*1024)));
-
-uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
-pte_tt l2pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
-pte_tt l3pt[PTES_PER_PT] __attribute__((aligned(RISCV_PGSIZE)));
+char test_area[4096] __attribute__((aligned(4*1024*1024))) BOOT_DATA;
 
 /* pointer to the end of boot code/data in kernel image */
 /* need a fake array to get the pointer from the linker script */
@@ -111,7 +107,7 @@ init_plat(void)
 /* Main kernel initialisation function. */
 
 
-static BOOT_CODE bool_t
+static PHYS_CODE bool_t
 try_init_kernel(
     paddr_t ui_p_reg_start,
     paddr_t ui_p_reg_end,
@@ -147,14 +143,16 @@ init_kernel(
     vptr_t  v_entry
 )
 {
+  test_area[0] = 0xD;
+
   printf("********* Platform Information ********** \n");
   init_plat();
 
-  try_init_kernel(0x00000000,
+  /*try_init_kernel(0x00000000,
                   0xFFFFFFFF,
                   0xF0000000,
                   0xF0000000);
-  
+    */
   printf("Initializing platform ...... \n");
   printf("Trying to write to invalid page ... \n");
   test_area[4096] = 0xD;
