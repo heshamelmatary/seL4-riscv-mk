@@ -19,6 +19,7 @@
 #define PPTR_TOP          0xfff00000
 #define PADDR_TOP         (PPTR_TOP - BASE_OFFSET)
 
+#define REG_SIE_STIE_MASK (1 << 5) 
 
 #ifndef __ASSEMBLER__
 

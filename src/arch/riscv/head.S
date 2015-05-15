@@ -23,6 +23,7 @@
 .extern trap_entry
 
 global_start:
+
   li x1, 0
   li x2, 0
   li x3, 0

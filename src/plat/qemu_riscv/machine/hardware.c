@@ -162,13 +162,15 @@ resetTimer(void)
     /* Timer resets automatically */
 }
 
-/* Configure EPIT1 as kernel preemption timer */
 /**
    DONT_TRANSLATE
  */
 BOOT_CODE void
 initTimer(void)
-{
+{ 
+  //write_csr(stime, 0x00000000);
+  write_csr(stimecmp, 0x00004e30);
+  set_csr(sie, 0x0200);
 }
 
 static void invalidateL2(void)
