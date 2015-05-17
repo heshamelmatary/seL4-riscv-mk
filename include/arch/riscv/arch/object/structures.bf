@@ -361,7 +361,7 @@ block thread_state(blockingIPCBadge, blockingIPCCanGrant, blockingIPCIsCall,
     field tsType 4
 }
 
----- ARM-specific object types
+---- RISCV-specific object types
 
 block stored_hw_asid {
     field asid 8
@@ -370,83 +370,24 @@ block stored_hw_asid {
     field pdeType 2
 }
 
--- Page directory entries
-block pde_invalid {
-    field stored_hw_asid 8
-    field stored_asid_valid 1
-    padding 21
-    field pdeType 2
+block pte {
+    field ppn1       12
+    field ppn0            10
+    field sw              3
+    field dirty           1
+    field read            1
+    field type            4
+    field valid           1
 }
 
-block pde_coarse {
-    field_high address 22
-    field P 1
-    field Domain 4
-    padding 3
-    field pdeType 2
-}
-
-block pde_section {
-    field_high address 12
-    padding 1
-    field size 1
-    field nG 1
-    field S 1
-    field APX 1
-    field TEX 3
-    field AP 2
-    field P 1
-    field Domain 4
-    field XN 1
-    field C 1
-    field B 1
-    field pdeType 2
-}
-
-block pde_reserved {
-    padding 30
-    field pdeType 2
-}
-
-tagged_union pde pdeType {
-    tag pde_invalid 0
-    tag pde_coarse 1
-    tag pde_section 2
-    tag pde_reserved 3
-}
-
--- Page table entries
-block pte_large {
-    field_high address 16
-    field XN 1
-    field TEX 3
-    field nG 1
-    field S 1
-    field APX 1
-    padding 3
-    field AP 2
-    field C 1
-    field B 1
-    field pteSize 1
-    field reserved 1 -- must be set
-}
-
-block pte_small {
-    field_high address 20
-    field nG 1
-    field S 1
-    field APX 1
-    field TEX 3
-    field AP 2
-    field C 1
-    field B 1
-    field pteSize 1
-    field XN 1
-}
-
-tagged_union pte pteSize {
-    tag pte_large 0
-    tag pte_small 1
+block pde {
+    field ppn1       12
+    padding               10
+    field sw              3
+    field dirty           1
+    field read            1
+    field type            4
+    field valid           1
 }
 
 -- VM attributes

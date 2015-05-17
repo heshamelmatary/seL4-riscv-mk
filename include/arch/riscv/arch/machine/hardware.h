@@ -20,23 +20,6 @@
 #define PTE_D     0x040 // Dirty
 #define PTE_SOFT  0x380 // Reserved for Software
 
-#define PTE_TYPE_TABLE        0x00
-#define PTE_TYPE_TABLE_GLOBAL 0x02
-#define PTE_TYPE_URX_SR       0x04
-#define PTE_TYPE_URWX_SRW     0x06
-#define PTE_TYPE_UR_SR        0x08
-#define PTE_TYPE_URW_SRW      0x0A
-#define PTE_TYPE_URX_SRX      0x0C
-#define PTE_TYPE_URWX_SRWX    0x0E
-#define PTE_TYPE_SR           0x10
-#define PTE_TYPE_SRW          0x12
-#define PTE_TYPE_SRX          0x14
-#define PTE_TYPE_SRWX         0x16
-#define PTE_TYPE_SR_GLOBAL    0x18
-#define PTE_TYPE_SRW_GLOBAL   0x1A
-#define PTE_TYPE_SRX_GLOBAL   0x1C
-#define PTE_TYPE_SRWX_GLOBAL  0x1E
-
 #define PTE_PPN_SHIFT 10
 #define PTE_PPN1_SHIFT 20
 
@@ -71,6 +54,25 @@ typedef uint32_t vm_fault_type_t;
 enum vm_page_size {
     RISCVNormalPage, /* 4KiB */
     RISCVMegaPage,   /* 4MiB */
+};
+
+enum pte_type {
+  RISCV_PTE_TYPE_TABLE = 0,
+  RISCV_PTE_TYPE_TABLE_GLOBAL = 1,
+  RISCV_PTE_TYPE_URX_SR = 2,
+  RISCV_PTE_TYPE_URWX_SRW = 3,
+  RISCV_PTE_TYPE_UR_SR = 4,
+  RISCV_PTE_TYPE_URW_SRW = 5,
+  RISCV_PTE_TYPE_URX_SRX = 6,
+  RISCV_PTE_TYPE_URWX_SRWX = 7,
+  RISCV_PTE_TYPE_SR = 8,
+  RISCV_PTE_TYPE_SRW = 9,
+  RISCV_PTE_TYPE_SRX = 10,
+  RISCV_PTE_TYPE_SRWX = 11,
+  RISCV_PTE_TYPE_SR_GLOBAL = 12,
+  RISCV_PTE_TYPE_SRW_GLOBAL = 13,
+  RISCV_PTE_TYPE_SRX_GLOBAL = 14,
+  RISCV_PTE_TYPE_SRWX_GLOBAL = 15
 };
 
 typedef uint32_t vm_page_size_t;
