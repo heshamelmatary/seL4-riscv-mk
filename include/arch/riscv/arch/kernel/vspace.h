@@ -56,12 +56,10 @@ word_t* PURE lookupIPCBuffer(bool_t isReceiver, tcb_t *thread);
 lookupPTSlot_ret_t lookupPTSlot(pde_t *pd, vptr_t vptr);
 pde_t* CONST lookupPDSlot(pde_t *pd, vptr_t vptr);
 exception_t handleVMFault(tcb_t *thread, vm_fault_type_t vm_faultType);
-void unmapPageTable(pde_t *pd, uint32_t pdIndex, pte_t* pt);
-void unmapPagePTE(vm_page_size_t page_size, pte_t *pt, unsigned int ptIndex, void *pptr);
-void unmapPagePDE(vm_page_size_t page_size, pde_t *pd, unsigned int pdIndex, void *pptr);
-void unmapAllPages(pde_t *pd, uint32_t pdIndex, pte_t *pt);
+void flushAllPageTables(pde_t *pd);
 void unmapAllPageTables(pde_t *pd);
-void setVMRoot(tcb_t *tcb);
+void unmapPageTable(pde_t *pd, uint32_t pdIndex);
+void unmapAllPages(pte_t *pt);
 bool_t CONST isValidVTableRoot(cap_t cap);
 exception_t checkValidIPCBuffer(vptr_t vptr, cap_t cap);
 vm_rights_t CONST maskVMRights(vm_rights_t vm_rights,
