@@ -16,6 +16,7 @@
 
 #define seL4_WordBits        32
 #define seL4_PageBits        12
+#define seL4_4MBits          22
 #define seL4_SlotBits         4
 #define seL4_TCBBits         10
 #define seL4_EndpointBits     4
@@ -23,22 +24,6 @@
 #define seL4_PageDirBits     12
 #define seL4_IOPageTableBits 12
 #define seL4_RISCV_VCPUBits 14
-#define seL4_RISCV_EPTPageDirectoryPointerTableBits 13
-#define seL4_RISCV_EPTPageDirectoryBits 12
-#define seL4_RISCV_EPTPageTableBits 12
-
-#ifdef CONFIG_PAE_PAGING
-#define seL4_PDPTBits         5
-#define seL4_LargePageBits    21
-#else
-#define seL4_LargePageBits    22
-#endif
-
-/* Previously large frames were explicitly assumed to be 4M. If not using
- * PAE assuming a legacy environment and leave the old definition */
-#ifndef CONFIG_PAE_PAGING
-#define seL4_4MBits           seL4_LargePageBits
-#endif
 
 typedef uint32_t  seL4_Word;
 typedef seL4_Word seL4_CPtr;
@@ -48,33 +33,35 @@ typedef seL4_CPtr seL4_RISCV_IOPort;
 typedef seL4_CPtr seL4_RISCV_Page;
 typedef seL4_CPtr seL4_RISCV_PageDirectory;
 typedef seL4_CPtr seL4_RISCV_PageTable;
-typedef seL4_CPtr seL4_RISCV_IOPageTable;
 typedef seL4_CPtr seL4_RISCV_VCPU;
-typedef seL4_CPtr seL4_RISCV_EPTPageDirectoryPointerTable;
-typedef seL4_CPtr seL4_RISCV_EPTPageDirectory;
-typedef seL4_CPtr seL4_RISCV_EPTPageTable;
 typedef seL4_CPtr seL4_RISCV_IPI;
 
 /* User context as used by seL4_TCB_ReadRegisters / seL4_TCB_WriteRegisters */
 
 typedef struct seL4_UserContext_ {
-    /* frameRegisters */
-    //seL4_Word eip, esp, eflags, eax, ebx, ecx, edx, esi, edi, ebp;
-    /* gpRegisters */
-    //seL4_Word tls_base, fs, gs;
+   /* FIXME: All registers for now */
+   seL4_Word[32];
 } seL4_UserContext;
 
-typedef struct seL4_VCPUContext_ {
-    //seL4_Word eax, ebx, ecx, edx, esi, edi, ebp;
-} seL4_VCPUContext;
-
 typedef enum {
-    seL4_RISCV_Default_VMAttributes = 0,
-    seL4_RISCV_WriteBack = 0,
-    seL4_RISCV_WriteThrough = 1,
-    seL4_RISCV_CacheDisabled = 2,
-    seL4_RISCV_Uncacheable = 3,
-    seL4_RISCV_WriteCombining = 4,
+    seL4_RISCV_Default_VMAttributes = 7,
+
+    seL4_RISCV_PTE_TYPE_TABLE = 0,
+    seL4_RISCV_PTE_TYPE_TABLE_GLOBAL = 1,
+    seL4_RISCV_PTE_TYPE_URX_SR = 2,
+    seL4_RISCV_PTE_TYPE_URWX_SRW = 3,
+    seL4_RISCV_PTE_TYPE_UR_SR = 4,
+    seL4_RISCV_PTE_TYPE_URW_SRW = 5,
+    seL4_RISCV_PTE_TYPE_URX_SRX = 6,
+    seL4_RISCV_PTE_TYPE_URWX_SRWX = 7,
+    seL4_RISCV_PTE_TYPE_SR = 8,
+    seL4_RISCV_PTE_TYPE_SRW = 9,
+    seL4_RISCV_PTE_TYPE_SRX = 10,
+    seL4_RISCV_PTE_TYPE_SRWX = 11,
+    seL4_RISCV_PTE_TYPE_SR_GLOBAL = 12,
+    seL4_RISCV_PTE_TYPE_SRW_GLOBAL = 13,
+    seL4_RISCV_PTE_TYPE_SRX_GLOBAL = 14,
+    seL4_RISCV_PTE_TYPE_SRWX_GLOBAL = 15
     SEL4_FORCE_LONG_ENUM(seL4_RISCV_VMAttributes),
 } seL4_RISCV_VMAttributes;
 
