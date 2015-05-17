@@ -44,4 +44,39 @@
 		<member name="x30"/>
 		<member name="x31"/>
     </struct>
+
+  <interface name="seL4_RISCV_PageDirectory">
+	    <method id="RISCVPageDirectoryMap" name="Map">
+	        <param dir="in" name="pdpt" type="seL4_RISCV_PageDirectory"/>
+	        <param dir="in" name="vaddr" type="seL4_Word"/>
+	        <param dir="in" name="attr" type="seL4_RISCV_VMAttributes"/>
+	    </method>
+	    <method id="RISCVPageDirectoryUnmap" name="Unmap">
+	    </method>
+	</interface>
+	<interface name="seL4_RISCV_PageTable">
+		<method id="RISCVPageTableMap" name="Map">
+			<param dir="in" name="pd" type="seL4_RISCV_PageDirectory"/>
+			<param dir="in" name="vaddr" type="seL4_Word"/>
+			<param dir="in" name="attr" type="seL4_RISCV_VMAttributes"/>
+		</method>
+        <method id="RISCVPageTableUnmap" name="Unmap">
+        </method>
+	</interface>
+	<interface name="seL4_RISCV_Page">
+		<method id="RISCVPageMap" name="Map">
+			<param dir="in" name="pd" type="seL4_RISCV_PageDirectory"/>
+			<param dir="in" name="vaddr" type="seL4_Word"/>
+			<param dir="in" name="rights" type="RISCV_CapRights"/>
+			<param dir="in" name="attr" type="seL4_RISCV_VMAttributes"/>
+		</method>
+		<method id="RISCVPageUnmap" name="Unmap"/>
+		<method id="ARMPageClean_Data" name="Clean_Data">
+		    <param dir="in" name="start_offset" type="seL4_Word"/>
+		    <param dir="in" name="end_offset" type="seL4_Word"/>
+		</method>
+		<method id="RISCVPageGetAddress" name="GetAddress">
+			<param dir="out" name="paddr" type="seL4_Word"/>
+		</method>
+	</interface>
 </api>

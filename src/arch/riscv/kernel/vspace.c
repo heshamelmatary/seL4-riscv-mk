@@ -49,9 +49,7 @@ static exception_t performPDFlush(int label, pde_t *pd, asid_t asid,
 static exception_t performPageFlush(int label, pde_t *pd, asid_t asid,
                                     vptr_t start, vptr_t end, paddr_t pstart);
 static exception_t performPageGetAddress(void *vbase_ptr);
-static exception_t decodeRISCVPageDirectoryInvocation(word_t label,
-                                                    unsigned int length, cptr_t cptr, cte_t *cte, cap_t cap,
-                                                    extra_caps_t extraCaps, word_t *buffer);
+
 static pde_t PURE loadHWASID(asid_t asid);
 
 static bool_t PURE pteCheckIfMapped(pte_t *pte);
@@ -411,11 +409,18 @@ pageBase(vptr_t vaddr, vm_page_size_t size)
 }
 
 static exception_t
-decodeRISCVPageDirectoryInvocation(word_t label, unsigned int length,
-                                 cptr_t cptr, cte_t *cte, cap_t cap,
-                                 extra_caps_t extraCaps, word_t *buffer)
+decodeRISCVPageDirectoryInvocation
+(
+    word_t label,
+    unsigned int length,
+    cte_t* cte,
+    cap_t cap,
+    extra_caps_t extraCaps,
+    word_t* buffer
+)
 {
-  return EXCEPTION_SYSCALL_ERROR;
+    current_syscall_error.type = seL4_IllegalOperation;
+    return EXCEPTION_SYSCALL_ERROR;
 }
 
 exception_t
@@ -423,6 +428,20 @@ decodeRISCVMMUInvocation(word_t label, unsigned int length, cptr_t cptr,
                        cte_t *cte, cap_t cap, extra_caps_t extraCaps,
                        word_t *buffer)
 {
+    switch (cap_get_capType(cap)) {
+
+    case cap_page_directory_cap:
+        return decodeRISCVPageDirectoryInvocation(label, length, cte, cap, extraCaps, buffer);
+
+    case cap_page_table_cap:
+        return decodeRISCVPageTableInvocation(label, length, cte, cap, extraCaps, buffer);
+
+    case cap_frame_cap:
+        return decodeRISCVFrameInvocation(label, length, cte, cap, extraCaps, buffer);
+
+    default:
+        fail("Invalid arch cap type");
+    }
 }
 
 exception_t
