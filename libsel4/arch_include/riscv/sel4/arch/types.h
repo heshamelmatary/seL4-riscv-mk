@@ -11,46 +11,71 @@
 #ifndef __LIBSEL4_ARCH_TYPES_H
 #define __LIBSEL4_ARCH_TYPES_H
 
-#include <sel4/macros.h>
+#include <autoconf.h>
 #include <stdint.h>
 
-#define seL4_WordBits 32
+#define seL4_WordBits        32
+#define seL4_PageBits        12
+#define seL4_SlotBits         4
+#define seL4_TCBBits         10
+#define seL4_EndpointBits     4
+#define seL4_PageTableBits   12
+#define seL4_PageDirBits     12
+#define seL4_IOPageTableBits 12
+#define seL4_RISCV_VCPUBits 14
+#define seL4_RISCV_EPTPageDirectoryPointerTableBits 13
+#define seL4_RISCV_EPTPageDirectoryBits 12
+#define seL4_RISCV_EPTPageTableBits 12
 
-#define seL4_PageBits 12
-#define seL4_SlotBits 4
-#define seL4_TCBBits 9
-#define seL4_EndpointBits 4
-#define seL4_PageTableBits 10
-#define seL4_PageDirBits 14
-#define seL4_ASIDPoolBits 12
+#ifdef CONFIG_PAE_PAGING
+#define seL4_PDPTBits         5
+#define seL4_LargePageBits    21
+#else
+#define seL4_LargePageBits    22
+#endif
 
-#define seL4_Frame_Args 4
-#define seL4_Frame_MRs 7
-#define seL4_Frame_HasNPC 0
+/* Previously large frames were explicitly assumed to be 4M. If not using
+ * PAE assuming a legacy environment and leave the old definition */
+#ifndef CONFIG_PAE_PAGING
+#define seL4_4MBits           seL4_LargePageBits
+#endif
 
-typedef uint32_t seL4_Word;
+typedef uint32_t  seL4_Word;
 typedef seL4_Word seL4_CPtr;
 
-typedef seL4_CPtr seL4_ARM_Page;
-typedef seL4_CPtr seL4_ARM_PageTable;
-typedef seL4_CPtr seL4_ARM_PageDirectory;
-typedef seL4_CPtr seL4_ARM_ASIDControl;
-typedef seL4_CPtr seL4_ARM_ASIDPool;
+typedef seL4_CPtr seL4_RISCV_IOSpace;
+typedef seL4_CPtr seL4_RISCV_IOPort;
+typedef seL4_CPtr seL4_RISCV_Page;
+typedef seL4_CPtr seL4_RISCV_PageDirectory;
+typedef seL4_CPtr seL4_RISCV_PageTable;
+typedef seL4_CPtr seL4_RISCV_IOPageTable;
+typedef seL4_CPtr seL4_RISCV_VCPU;
+typedef seL4_CPtr seL4_RISCV_EPTPageDirectoryPointerTable;
+typedef seL4_CPtr seL4_RISCV_EPTPageDirectory;
+typedef seL4_CPtr seL4_RISCV_EPTPageTable;
+typedef seL4_CPtr seL4_RISCV_IPI;
+
+/* User context as used by seL4_TCB_ReadRegisters / seL4_TCB_WriteRegisters */
 
 typedef struct seL4_UserContext_ {
-    /* frame registers */
-    seL4_Word pc, sp, cpsr, r0, r1, r8, r9, r10, r11, r12;
-    /* other integer registers */
-    seL4_Word r2, r3, r4, r5, r6, r7, r14;
+    /* frameRegisters */
+    //seL4_Word eip, esp, eflags, eax, ebx, ecx, edx, esi, edi, ebp;
+    /* gpRegisters */
+    //seL4_Word tls_base, fs, gs;
 } seL4_UserContext;
 
-typedef enum {
-    seL4_ARM_PageCacheable = 0x01,
-    seL4_ARM_ParityEnabled = 0x02,
-    seL4_ARM_Default_VMAttributes = 0x03,
-    seL4_ARM_ExecuteNever  = 0x04,
-    /* seL4_ARM_PageCacheable | seL4_ARM_ParityEnabled */
-    SEL4_FORCE_LONG_ENUM(seL4_ARM_VMAttributes),
-} seL4_ARM_VMAttributes;
+typedef struct seL4_VCPUContext_ {
+    //seL4_Word eax, ebx, ecx, edx, esi, edi, ebp;
+} seL4_VCPUContext;
 
-#endif /* __ARCH_SEL4TYPES_H__ */
+typedef enum {
+    seL4_RISCV_Default_VMAttributes = 0,
+    seL4_RISCV_WriteBack = 0,
+    seL4_RISCV_WriteThrough = 1,
+    seL4_RISCV_CacheDisabled = 2,
+    seL4_RISCV_Uncacheable = 3,
+    seL4_RISCV_WriteCombining = 4,
+    SEL4_FORCE_LONG_ENUM(seL4_RISCV_VMAttributes),
+} seL4_RISCV_VMAttributes;
+
+#endif

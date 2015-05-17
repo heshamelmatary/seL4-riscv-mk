@@ -27,9 +27,8 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-/* FIXME: %s/uint32_t/pte_t */
-uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
-uint32_t l2pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+pde_t l1pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+pte_t l2pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
 /* This is only needed for 64-bit implementation, keep it for future */
 uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
 
@@ -58,6 +57,100 @@ static pde_t PURE loadHWASID(asid_t asid);
 static bool_t PURE pteCheckIfMapped(pte_t *pte);
 static bool_t PURE pdeCheckIfMapped(pde_t *pde);
 
+/* The following two functions are used during bootstraping and before MMU
+ * enable. They are copied from structures_gen.h but placed into physical 
+ * memory.
+ */
+PHYS_CODE static inline pde_t __attribute__((__const__))
+pde_new_phys(uint32_t ppn1, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t type, uint32_t valid) {
+    pde_t pde;
+
+    pde.words[0] = 0;
+
+    pde.words[0] |= (ppn1 & 0x00000fff) << 20;
+    pde.words[0] |= (sw & 0x7) << 7;
+    pde.words[0] |= (dirty & 0x1) << 6;
+    pde.words[0] |= (read & 0x1) << 5;
+    pde.words[0] |= (type & 0xf) << 1;
+    pde.words[0] |= (valid & 0x1) << 0;
+
+    return pde;
+}
+
+PHYS_CODE static inline pte_t __attribute__((__const__))
+pte_new_phys(uint32_t ppn1, uint32_t ppn0, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t type, uint32_t valid) {
+    pte_t pte;
+
+    pte.words[0] = 0;
+
+    pte.words[0] |= (ppn1 & 0x00000fff) << 20;
+    pte.words[0] |= (ppn0 & 0x3ff) << 10;
+    pte.words[0] |= (sw & 0x7) << 7;
+    pte.words[0] |= (dirty & 0x1) << 6;
+    pte.words[0] |= (read & 0x1) << 5;
+    pte.words[0] |= (type & 0xf) << 1;
+    pte.words[0] |= (valid & 0x1) << 0;
+
+    return pte;
+}
+
+PHYS_CODE VISIBLE void
+map_kernel_window(void)
+{
+    paddr_t  phys;
+    uint32_t idx;
+    pde_t    pde;
+    long     i;
+
+    /* mapping of kernelBase (virtual address) to kernel's physBase  */
+    /* up to end of virtual address space minus 16M using 16M frames */
+    phys = VIRT1_TO_IDX(0x00000000);
+    idx  = VIRT1_TO_IDX(kernelBase);
+
+  for(i = 0; i < idx ; i++)
+  {
+    l1pt[i] = pde_new_phys(i,
+            0,
+            0,
+            0,
+            RISCV_PTE_TYPE_SRWX,
+            1);
+
+//PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+     
+  }
+
+  /*  4 MB Mega Pages */
+  for(i = 0; idx < 1024 ; idx++, phys++)
+  {
+    l1pt[idx] = pde_new_phys(phys,
+            0,
+            0,
+            0,
+            RISCV_PTE_TYPE_SRWX,
+            1); 
+
+//PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+    
+            
+  }
+
+  //l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
+
+  write_csr(sptbr, l1pt);
+
+  set_csr(mstatus, MSTATUS_IE1);
+  set_csr(mstatus, MSTATUS_PRV1);
+  clear_csr(mstatus, MSTATUS_VM);
+
+  set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
+
+  /* Set to supervisor mode */
+  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
+
+}
+
 static word_t CONST
 APFromVMRights(vm_rights_t vm_rights)
 {
@@ -78,50 +171,11 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
     uint32_t idx1 = VIRT1_TO_IDX(vaddr);
     uint32_t idx2 = VIRT0_TO_IDX(vaddr);
 
-    l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
-    l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
+    //l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
+    //l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
 
     /*assert(vaddr >= PPTR_TOP); /* vaddr lies in the region the global PT covers */
    
-}
-
-PHYS_CODE VISIBLE void
-map_kernel_window(void)
-{
-    paddr_t  phys;
-    uint32_t idx;
-    pde_t    pde;
-    long     i;
-
-    /* mapping of kernelBase (virtual address) to kernel's physBase  */
-    /* up to end of virtual address space minus 16M using 16M frames */
-    phys = VIRT1_TO_IDX(0x00000000);
-    idx  = VIRT1_TO_IDX(kernelBase);
-
-  for(i = 0; i < idx ; i++)
-  {
-    l1pt[i] = PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-  }
-
-  /*  4 MB Mega Pages */
-  for(i = 0; idx < 1024 ; idx++, phys++)
-  {
-    l1pt[idx] = PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-  }
-
-   l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-  //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
-
-  write_csr(sptbr, l1pt);
-
-  set_csr(mstatus, MSTATUS_IE1);
-  set_csr(mstatus, MSTATUS_PRV1);
-  clear_csr(mstatus, MSTATUS_VM);
-
-  set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
-
-  /* Set to supervisor mode */
-  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
 }
 
 BOOT_CODE void
