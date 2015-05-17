@@ -118,7 +118,7 @@ block domain_cap {
     field capType 8
 }
 
----- ARM-specific caps
+---- RISCV-specific caps
 
 -- 4k, 64k, 1M, 16M frames
 block frame_cap {

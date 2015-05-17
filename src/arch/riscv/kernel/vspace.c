@@ -27,8 +27,8 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-pde_t l1pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
-pte_t l2pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
+pde_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
+pte_t l2pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
 /* This is only needed for 64-bit implementation, keep it for future */
 uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
 
@@ -248,8 +248,16 @@ pageTableMapped(asid_t asid, vptr_t vaddr, pte_t* pt)
 {
 }
 
-void unmapPageTable(pde_t *pd, uint32_t pdIndex, pte_t* pt)
+void unmapPageTable(pde_t* pd, uint32_t pdIndex)
 {
+    pd[pdIndex] = pde_new(
+                      0,  /* ppn1 */
+                      0,  /* sw */
+                      0,  /* dirty */
+                      0,  /* read */
+                      0,  /* type */
+                      0  /* valid */
+                  );
 }
 
 static pte_t pte_pte_invalid_new(void)
@@ -356,6 +364,60 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
                              cte_t *cte, cap_t cap, extra_caps_t extraCaps,
                              word_t *buffer)
 {
+    word_t          vaddr;
+    vm_attributes_t attr;
+    cap_t           vspaceCap;
+    void*           vspace;
+    pde_t           pde;
+    pde_t *         pd, *pdSlot;
+    paddr_t         paddr;
+
+    if (label == RISCVPageTableUnmap) {
+        setThreadState(ksCurThread, ThreadState_Restart);
+
+        pd = PDE_PTR(cap_page_table_cap_get_capPTMappedObject(cap));
+        if (pd) {
+            pte_t *pt = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap));
+            uint32_t pdIndex = cap_page_table_cap_get_capPTMappedIndex(cap);
+            unmapPageTable(pd, pdIndex);
+            flushTable(pd, pdIndex, pt);
+            clearMemory((void *)pt, cap_get_capSizeBits(cap));
+        }
+        cdtUpdate(cte, cap_page_table_cap_set_capPTMappedObject(cap, 0));
+
+        return EXCEPTION_NONE;
+    }
+
+    if (label != RISCVPageTableMap ) {
+        userError("RISCVPageTable: Illegal operation.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    vaddr = getSyscallArg(0, buffer) & (~MASK(PT_BITS + PAGE_BITS));
+    attr = vmAttributesFromWord(getSyscallArg(1, buffer));
+    vspaceCap = extraCaps.excaprefs[0]->cap;
+
+    vspace = (void*)pptr_of_cap(vspaceCap);
+    pdSlot = (lookupPDSlot(vspace, vaddr));
+
+    paddr = pptr_to_paddr(PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap)));
+
+    pde = pde_new(
+                      0,  /* ppn1 */
+                      0,  /* sw */
+                      0,  /* dirty */
+                      0,  /* read */
+                      0,  /* type */
+                      0  /* valid */
+                  );
+
+    //cap = cap_page_table_cap_set_capPTMappedObject(cap, PD_REF(pdSlot.pd));
+    //cap = cap_page_table_cap_set_capPTMappedIndex(cap, pdSlot.pdIndex);
+
+    cdtUpdate(cte, cap);
+    *pdSlot = pde;
+    
 }
 
 struct create_mappings_pte_return {

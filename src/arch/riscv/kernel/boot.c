@@ -157,6 +157,7 @@ init_kernel(
   printf("Trying to write to invalid page ... \n");
   
   test_area[4096] = 0xD;
+
   printf("Exiting....\n");
   halt();
   while(1);

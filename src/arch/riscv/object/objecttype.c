@@ -87,7 +87,12 @@ Arch_decodeInvocation(word_t label, unsigned int length, cptr_t cptr,
                       cte_t *slot, cap_t cap, extra_caps_t extraCaps,
                       word_t *buffer)
 {
-    return decodeRISCVMMUInvocation(label, length, cptr, slot, cap, extraCaps, buffer);
+    switch (cap_get_capType(cap)) {
+    case cap_page_directory_cap:
+    case cap_page_table_cap:
+    		return decodeRISCVMMUInvocation(label, length, cptr, slot, cap, extraCaps, buffer);
+    default: printf("Not page_cap");
+    }
 }
 
 void
