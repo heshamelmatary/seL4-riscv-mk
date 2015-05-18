@@ -117,19 +117,16 @@ try_init_kernel(
 {
     /* kernel successfully initialized */
 
-  while (read_csr(mhartid) > 0); // only core 0 proceeds
-
-  map_kernel_window();
-
-  /* Set next level of trap stack to machine mode */
-  set_csr(mstatus, MSTATUS_IE1 | MSTATUS_MPRV);
-  set_csr(mstatus, MSTATUS_PRV1);
-  clear_csr(mstatus, MSTATUS_VM);
-
-  set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
-
-  /* Set to supervisor mode */
-  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
+    cap_t root_cnode_cap;
+    cap_t it_pd_cap;
+    cap_t ipcbuf_cap;
+    region_t ui_reg = paddr_to_pptr_reg((p_region_t) {
+        ui_p_reg_start, ui_p_reg_end
+    });
+    pptr_t bi_frame_pptr;
+    vptr_t bi_frame_vptr;
+    vptr_t ipcbuf_vptr;
+    create_frames_of_region_ret_t create_frames_ret;
     
     // page directory
   return true;
@@ -156,7 +153,16 @@ init_kernel(
   printf("Initializing platform ...... \n");
   printf("Trying to write to invalid page ... \n");
   
-  test_area[4096] = 0xD;
+    bool_t result;
+
+    result = try_init_kernel(ui_p_reg_start,
+                             ui_p_reg_end,
+                             pv_offset,
+                             v_entry);
+        
+    if (!result) {
+        fail ("Kernel init failed for some reason :(");
+    }
 
   printf("Exiting....\n");
   halt();
