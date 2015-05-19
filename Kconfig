@@ -178,11 +178,11 @@ config ARCH_IA32
             help
                 Support for ALLWINNERA20 platform (CUBIETRUCK).
 
-        config PLAT_QEMU_RISCV
-            bool "QEMU_RISCV"
+        config PLAT_SPIKE
+            bool "PLAT_SPIKE"
             depends on ARCH_RISCV
             help
-                Support for riscv-softmmu platform
+                Support for riscv/spike platform
     endchoice
 
         config PLAT_QEMU_RISCV
