@@ -61,8 +61,8 @@ global_start:
 
   la sp, (_boot_stack_top)
 
-  la   s0, map_kernel_window
-  jalr s0
+  #la   s0, map_kernel_window
+  #jalr s0
 
   la sp, (riscv_kernel_stack)
   la s0, init_kernel

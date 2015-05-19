@@ -5,10 +5,18 @@
 # define LREG lw
 # define SREG sw
 
+.section .phys.text
+
 .global _start
 .extern global_start
 
-.section .vector, "ax"
+_start:
+  la  s0, trap_entry
+  csrw   stvec, s0
+  la s0, global_start
+  jr s0
+
+/*.section .vector, "ax"*/
 /* 0x100 user-level trap */
   .align 6
   la s0, trap_entry
@@ -27,14 +35,6 @@
   la s0, trap_entry
   jr s0
 /* 0x200 reset */
-  .align 6
-_start:
-  la s0, trap_entry
-  csrw   stvec, s0
-  la s0, global_start
-  jr s0
-
-.section .phys.text
 
 trap_entry:
   addi sp, sp, -272
