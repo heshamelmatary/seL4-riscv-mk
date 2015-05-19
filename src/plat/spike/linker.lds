@@ -19,10 +19,12 @@ KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
 SECTIONS
 {
-    .vector 0x100:
+    /*.vector 0x100:
     {
         *(.vector) 
     }
+    */
+    . = . + KERNEL_OFFSET;
 
     .phys . : 
     {   
@@ -36,8 +38,6 @@ SECTIONS
         *(.phys.*)
     }
 
-    . = . + KERNEL_OFFSET;
-
     .boot . : AT(ADDR(.boot) - KERNEL_OFFSET)
     {
         *(.boot.text)
@@ -45,6 +45,7 @@ SECTIONS
         *(.boot.data)
         . = ALIGN(64K);
     }
+
 
     ki_boot_end = .;
     
