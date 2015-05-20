@@ -27,7 +27,7 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-pde_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
+uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
 pte_t l2pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
 /* This is only needed for 64-bit implementation, keep it for future */
 uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
@@ -96,16 +96,16 @@ PHYS_CODE VISIBLE void
 map_kernel_window(void)
 {
     paddr_t  phys;
-    uint32_t idx;
+    uint32_t idx, limit;
     pde_t    pde;
     long     i;
 
     /* mapping of kernelBase (virtual address) to kernel's physBase  */
-    /* up to end of virtual address space minus 16M using 16M frames */
-    phys = VIRT1_TO_IDX(0x00000000);
+    /* up to end of virtual address space minus 4MB */
+    phys = VIRT1_TO_IDX(0x00400000);
     idx  = VIRT1_TO_IDX(kernelBase);
-
-  for(i = 0; i < idx ; i++)
+    limit = idx + 63;
+ /* for(i = 0; i < idx ; i++)
   {
     l1pt[i] = pde_new_phys(i,
             0,
@@ -113,39 +113,48 @@ map_kernel_window(void)
             0,
             RISCV_PTE_TYPE_SRWX,
             1);
-
+  }
+*/
 //PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
      
-  }
-
-  /*  4 MB Mega Pages */
-  for(i = 0; idx < 1024 ; idx++, phys++)
+  /*  4 MB Mega Pages that covers 256 MiB - total memory */
+  for(i = 0; idx < limit ; idx++, phys++)
   {
-    l1pt[idx] = pde_new_phys(phys,
+    l1pt[idx] = PTE_CREATE(phys << PTE_PPN_SHIFT, 0x16); 
+
+            /*pde_new_phys(
+            phys,
             0,
             0,
             0,
             RISCV_PTE_TYPE_SRWX,
             1); 
-
+             */
+  /* point to the next last 4MB physical page index */
 //PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
     
             
   }
 
+  phys++;
+
+  printf("phys = 0x%x\n", phys << 22);
+  printf("PADDR_TOP = 0x%x\n", PADDR_TOP);
+  assert((phys << 22) == PADDR_TOP);
+
   //l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
   //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
 
-  write_csr(sptbr, l1pt);
+  write_csr(sptbr, (uint32_t) &l1pt - 0x6FC00000);
 
-  set_csr(mstatus, MSTATUS_IE1);
-  set_csr(mstatus, MSTATUS_PRV1);
-  clear_csr(mstatus, MSTATUS_VM);
+  //set_csr(mstatus, MSTATUS_IE1);
+  //set_csr(mstatus, MSTATUS_PRV1);
+  //clear_csr(mstatus, MSTATUS_VM);
 
-  set_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
+  //et_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
 
   /* Set to supervisor mode */
-  clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
+  //clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
 
 }
 
