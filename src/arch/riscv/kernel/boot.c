@@ -107,7 +107,7 @@ init_plat(void)
 /* Main kernel initialisation function. */
 
 
-static PHYS_CODE bool_t
+static BOOT_CODE bool_t
 try_init_kernel(
     paddr_t ui_p_reg_start,
     paddr_t ui_p_reg_end,
@@ -116,6 +116,12 @@ try_init_kernel(
 )
 {
     /* kernel successfully initialized */
+
+    printf("Bootstrapping kernel\n");
+    printf("ui_p_reg_start = %x \n", ui_p_reg_start);
+    printf("ui_p_reg_end = %x \n", ui_p_reg_end);
+    printf("pv_offset = %x \n", pv_offset);
+    printf("v_entry = %x \n", v_entry);
 
     cap_t root_cnode_cap;
     cap_t it_pd_cap;
@@ -128,6 +134,21 @@ try_init_kernel(
     vptr_t ipcbuf_vptr;
     create_frames_of_region_ret_t create_frames_ret;
     
+    /* convert from physical addresses to userland vptrs */
+    v_region_t ui_v_reg;
+    v_region_t it_v_reg;
+    ui_v_reg.start = ui_p_reg_start - pv_offset;
+    ui_v_reg.end   = ui_p_reg_end   - pv_offset;
+
+    ipcbuf_vptr = ui_v_reg.end;
+    bi_frame_vptr = ipcbuf_vptr + BIT(PAGE_BITS);
+
+    /* The region of the initial thread is the user image + ipcbuf and boot info */
+    it_v_reg.start = ui_v_reg.start;
+    it_v_reg.end = bi_frame_vptr + BIT(PAGE_BITS);
+
+    map_kernel_window();
+
     // page directory
   return true;
 }

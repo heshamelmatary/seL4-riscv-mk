@@ -11,12 +11,12 @@
 #ifndef __PLAT_MACHINE_HARDWARE_H
 #define __PLAT_MACHINE_HARDWARE_H
 
-#define physBase          0x00000000
+#define physBase          0x00400000
 #define PADDR_BASE        physBase /* for compatibility with proofs */
 #define kernelBase        0x70000000
 #define physMappingOffset (kernelBase - physBase)
 #define BASE_OFFSET       physMappingOffset
-#define PPTR_TOP          0xfff00000
+#define PPTR_TOP          0x80000000
 #define PADDR_TOP         (PPTR_TOP - BASE_OFFSET)
 
 #define REG_SIE_STIE_MASK (1 << 5) 
@@ -38,7 +38,7 @@ ptrFromPAddr(paddr_t paddr)
 static inline paddr_t CONST
 addrFromPPtr(void* pptr)
 {
-    return (paddr_t)pptr - physMappingOffset;
+    return (paddr_t)pptr - 0x6FC00000;
 }
 
 
