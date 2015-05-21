@@ -26,8 +26,6 @@ word_t riscvKSGlobalsFrame[BIT(PAGE_BITS) / sizeof(word_t)] ALIGN_BSS(BIT(PAGE_B
 //asid_t riscvKSHWASIDTable[BIT(hwASIDBits)];
 //hw_asid_triscvKSNextASID;
 
-pde_t l1pt[PTES_PER_PT] ALIGN_BSS(4*1024*1024);
-pte_t l2pt[PTES_PER_PT] ALIGN_BSS(4*1024*1024);
 /* This is only needed for 64-bit implementation, keep it for future */
 uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) VISIBLE;
 
