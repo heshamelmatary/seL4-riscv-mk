@@ -180,11 +180,11 @@ void printstr(char *s)
 int putchar(int ch)
 {
   static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  static __thread int  buflen = 0;
   buf[buflen++] = ch;
   if (ch == '\n' || buflen == sizeof(buf))
   {
-    syscall(SYS_write, 1, (long)buf, buflen);
+    syscall(SYS_write, 1, (long)addrFromPPtr(buf), buflen);
     buflen = 0;
   }
   return 0;
