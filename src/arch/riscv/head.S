@@ -27,6 +27,7 @@ global_start:
   #li t0, 0x00000004; csrc mstatus, t0 # run in supervisor mode
   #li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
 
+  la tp, test_area
   la sp, (_boot_stack_top)
 
   #la   s0, map_kernel_window

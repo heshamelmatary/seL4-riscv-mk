@@ -122,19 +122,22 @@ map_kernel_window(void)
   {
     l1pt[idx] = pde_new(
             phys,
-            0,
-            0,
-            0,
-            RISCV_PTE_TYPE_SRWX,
-            1); 
+            0,  /* sw */
+            0,  /* dirty */ 
+            0,  /* read */
+            RISCV_PTE_TYPE_SRWX, /* type */
+            1 /* valid */
+     ); 
   
-  /* point to the next last 4MB physical page index */
-//PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
+  
+  //PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
    // PTE_CREATE(phys << PTE_PPN_SHIFT, 0x16); 
             
   }
 
+  /* point to the next last 4MB physical page index */
   phys++;
+  idx++;
 
   assert((phys << 22) == PADDR_TOP);
 
