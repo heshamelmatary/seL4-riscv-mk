@@ -958,7 +958,7 @@ typedef unsigned long pte_tt;
 #define PTIDXBITS (PGSHIFT - (sizeof(pte_tt) == 8 ? 3 : 2))
 #define VPN_BITS (PTIDXBITS * LEVELS)
 #define VA_BITS (VPN_BITS + PGSHIFT)
-#define PTES_PER_PT (RISCV_PGSIZE/sizeof(pte_tt))
+#define PTES_PER_PT (RISCV_PGSIZE/sizeof(pte_t))
 
 #define SYS_write 64
 #define SYS_exit 93

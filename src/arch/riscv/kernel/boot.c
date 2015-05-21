@@ -172,8 +172,7 @@ init_kernel(
                   0xF0000000);
     */
   printf("Initializing platform ...... \n");
-  printf("Trying to write to invalid page ... \n");
-  
+
     bool_t result;
 
     result = try_init_kernel(ui_p_reg_start,
@@ -184,6 +183,9 @@ init_kernel(
     if (!result) {
         fail ("Kernel init failed for some reason :(");
     }
+
+    printf("Trying to write to invalid page ... \n");
+  *((char *) 0x80000FFF) = 0xD;
 
   printf("Exiting....\n");
   halt();

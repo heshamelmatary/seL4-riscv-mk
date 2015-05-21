@@ -14,7 +14,7 @@
 #define PAGE_BITS 12
 
 #define PPTR_VECTOR_TABLE 0x7fff0000
-#define PPTR_GLOBALS_PAGE 0x7fffc000
+#define PPTR_GLOBALS_PAGE 0x80000000
 
 /* The stack is the very last page of virtual memory. */
 #define PPTR_KERNEL_STACK 0x7ffff000

@@ -17,13 +17,17 @@
 #include <plat/machine/hardware.h>
 
 /* The global frame, mapped in all address spaces */
-word_t armKSGlobalsFrame[BIT(ARMSmallPageBits) / sizeof(word_t)]
-ALIGN_BSS(BIT(ARMSmallPageBits));
+word_t riscvKSGlobalsFrame[BIT(PAGE_BITS) / sizeof(word_t)] ALIGN_BSS(BIT(PAGE_BITS));
 
 /* The top level asid mapping table */
-asid_pool_t *armKSASIDTable[BIT(asidHighBits)];
+//asid_pool_t *riscvKSASIDTable[BIT(asidHighBits)];
 
 /* The hardware ASID to virtual ASID mapping table */
-asid_t armKSHWASIDTable[BIT(hwASIDBits)];
-hw_asid_t armKSNextASID;
+//asid_t riscvKSHWASIDTable[BIT(hwASIDBits)];
+//hw_asid_triscvKSNextASID;
+
+pde_t l1pt[PTES_PER_PT] ALIGN_BSS(4*1024*1024);
+pte_t l2pt[PTES_PER_PT] ALIGN_BSS(4*1024*1024);
+/* This is only needed for 64-bit implementation, keep it for future */
+uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) VISIBLE;
 

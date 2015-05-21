@@ -13,8 +13,7 @@
 #define MSTATUS32_SD        0x80000000
 #define MSTATUS64_SD        0x8000000000000000
 
-
-.section .phys.text, "ax"
+.section .boot.text, "ax"
 .global __clzsi2;
 .global __ctzsi2
 .global global_start
@@ -28,10 +27,6 @@ global_start:
   #li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
 
   la tp, test_area
-  la sp, (_boot_stack_top)
-
-  #la   s0, map_kernel_window
-  #jalr s0
 
   la sp, (riscv_kernel_stack)
   la s0, init_kernel

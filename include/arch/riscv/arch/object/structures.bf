@@ -393,8 +393,6 @@ block pde {
 -- VM attributes
 
 block vm_attributes {
-    padding 29
-    field armExecuteNever  1
-    field armParityEnabled 1
-    field armPageCacheable 1
+    padding 31
+    field riscvExecuteNever  1
 }
