@@ -23,7 +23,7 @@
 
 const p_region_t BOOT_RODATA avail_p_regs[] = {
     /* 128 MiB of memory minus kernel image at its beginning */
-    { .start = 0x80000000, .end = 0x88000000 }
+    { .start = 0x00400000, .end = 0x08400000 }
 };
 
 BOOT_CODE int get_num_avail_p_regs(void)
