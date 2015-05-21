@@ -8,6 +8,6 @@
 # @TAG(GD_GPL)
 #
 
-DIRECTORIES += src/arch/arm/model
+DIRECTORIES += src/arch/riscv/model
 
 ARCH_C_SOURCES += model/statedata.c

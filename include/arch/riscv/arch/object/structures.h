@@ -76,7 +76,7 @@ typedef uint32_t pde_type_t;
 #define PTE_REF(p) ((unsigned int)(p))
 
 #define PT_BITS 8
-#define PT_SIZE_BITS (PT_BITS+PTE_SIZE_BITS)
+#define PT_SIZE_BITS 12 
 #define PT_PTR(r) ((pte_t *)(r))
 #define PT_REF(p) ((unsigned int)(p))
 

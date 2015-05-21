@@ -27,11 +27,6 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-pde_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
-pte_t l2pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
-/* This is only needed for 64-bit implementation, keep it for future */
-uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
-
 char riscv_kernel_stack[1024*1024] __attribute__((aligned(4096))) BOOT_DATA;
 
 struct resolve_ret {
@@ -75,7 +70,7 @@ pde_new_phys(uint32_t ppn1, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t
     return pde;
 }
 
-PHYS_CODE static inline pte_t __attribute__((__const__))
+BOOT_CODE static inline pte_t __attribute__((__const__))
 pte_new_phys(uint32_t ppn1, uint32_t ppn0, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t type, uint32_t valid) {
     pte_t pte;
 
@@ -92,7 +87,50 @@ pte_new_phys(uint32_t ppn1, uint32_t ppn0, uint32_t sw, uint32_t dirty, uint32_t
     return pte;
 }
 
-PHYS_CODE VISIBLE void
+static word_t CONST
+APFromVMRights(vm_rights_t vm_rights)
+{
+    switch (vm_rights) {
+    case VMNoAccess:
+        return 0;
+
+    case VMKernelOnly:
+        return RISCV_PTE_TYPE_SRWX;
+
+    case VMReadOnly:
+        return RISCV_PTE_TYPE_SR;
+
+    case VMReadWrite:
+        return RISCV_PTE_TYPE_SRW;
+
+    default:
+        fail("Invalid VM rights");
+    }
+}
+
+BOOT_CODE void
+map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
+{
+
+    /* First level page table */
+    uint32_t idx = VIRT0_TO_IDX(vaddr);
+
+    assert(vaddr >= PPTR_TOP); /* vaddr lies in the region the global PT covers */
+    //l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
+    //l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
+
+    l2pt[idx] = pte_new(
+      VIRT1_TO_IDX(paddr), /* ppn1 */
+      VIRT0_TO_IDX(paddr), /* ppn0 */
+      0, /* sw */
+      0, /* dirty */
+      0, /* read */
+      APFromVMRights(vm_rights), /* type */
+      1 /* valid */
+    );   
+}
+
+BOOT_CODE VISIBLE void
 map_kernel_window(void)
 {
     paddr_t  phys;
@@ -144,35 +182,33 @@ map_kernel_window(void)
   //l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
   //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
 
+  /* Map last 4MiB Page to page tables - 80400000 */
+  
+  printf("l2pt phys = 0x%x\n", VIRT1_TO_IDX(addrFromPPtr(l2pt)));
+
+  l1pt[idx] = pde_new(
+            VIRT1_TO_IDX(addrFromPPtr(l2pt)),
+            0,  /* sw */
+            0,  /* dirty */ 
+            0,  /* read */
+            RISCV_PTE_TYPE_TABLE, /* type */
+            1 /* valid */
+     );
+  /* now start initialising the page table */
+  memzero(l2pt, 1 << 12);
+  
+  /* map global page */
+  map_kernel_frame(
+     addrFromPPtr(riscvKSGlobalsFrame),
+     PPTR_GLOBALS_PAGE, 
+     VMKernelOnly);
+
   write_csr(sptbr, addrFromPPtr(l1pt));
-
-}
-
-static word_t CONST
-APFromVMRights(vm_rights_t vm_rights)
-{
-        return 0;
-
 }
 
 BOOT_CODE void
 map_it_pt_cap(cap_t pd_cap)
 {
-}
-
-BOOT_CODE void
-map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
-{
-
-    /* First level page table */
-    uint32_t idx1 = VIRT1_TO_IDX(vaddr);
-    uint32_t idx2 = VIRT0_TO_IDX(vaddr);
-
-    //l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
-    //l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
-
-    /*assert(vaddr >= PPTR_TOP); /* vaddr lies in the region the global PT covers */
-   
 }
 
 BOOT_CODE void

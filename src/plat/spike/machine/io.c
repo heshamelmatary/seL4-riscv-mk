@@ -120,13 +120,13 @@ void halt ()
   syscall(SYS_exit, 0, (long) 0, 0);
 }
 
-PHYS_CODE void tohost_exit(long code)
+BOOT_CODE void tohost_exit(long code)
 {
   write_csr(mtohost, (code << 1) | 1);
   while (1);
 }
 
-PHYS_CODE static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
+BOOT_CODE static long handle_frontend_syscall(long which, long arg0, long arg1, long arg2)
 {
   magic_mem[0] = which;
   magic_mem[1] = arg0;
@@ -138,7 +138,7 @@ PHYS_CODE static long handle_frontend_syscall(long which, long arg0, long arg1, 
   return magic_mem[0];
 }
 
-PHYS_CODE VISIBLE long handle_trap(uint32_t cause, uint32_t epc, uint64_t regs[32])
+BOOT_CODE VISIBLE long handle_trap(uint32_t cause, uint32_t epc, uint64_t regs[32])
 {
   int* csr_insn;
   //asm ("jal %0, 1f; csrr a0, stats; 1:" : "=r"(csr_insn));

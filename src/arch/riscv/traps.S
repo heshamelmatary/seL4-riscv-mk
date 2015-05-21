@@ -5,8 +5,7 @@
 # define LREG lw
 # define SREG sw
 
-.section .phys.text
-
+.section .boot.text, "ax"
 .global _start
 .extern global_start
 

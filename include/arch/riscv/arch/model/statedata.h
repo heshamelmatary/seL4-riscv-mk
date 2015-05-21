@@ -18,4 +18,9 @@
 #include <arch/types.h>
 #include <plat/machine/devices.h>
 
+extern word_t riscvKSGlobalsFrame[BIT(PAGE_BITS) / sizeof(word_t)] ALIGN_BSS(BIT(PAGE_BITS));
+
+extern pde_t l1pt[1024] ALIGN_BSS(4*1024*1024) VISIBLE;
+extern pte_t l2pt[1024] ALIGN_BSS(4*1024*1024) VISIBLE;
+
 #endif

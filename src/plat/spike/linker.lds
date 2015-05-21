@@ -26,18 +26,6 @@ SECTIONS
     */
     . = . + KERNEL_OFFSET;
 
-    .phys . : 
-    {   
-        *(.mbh)
-        *(.phys.text)
-        _boot_stack_bottom = .;
-        . = . + 2K; 
-        . = ALIGN(4K);
-        _boot_stack_top = .;
-        *(.phys)
-        *(.phys.*)
-    }
-
     .boot . : AT(ADDR(.boot) - KERNEL_OFFSET)
     {
         *(.boot.text)
