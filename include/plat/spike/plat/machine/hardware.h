@@ -38,7 +38,7 @@ ptrFromPAddr(paddr_t paddr)
 static inline paddr_t CONST
 addrFromPPtr(void* pptr)
 {
-    return (paddr_t)pptr - 0x6FC00000;
+    return (paddr_t)pptr - physMappingOffset;
 }
 
 

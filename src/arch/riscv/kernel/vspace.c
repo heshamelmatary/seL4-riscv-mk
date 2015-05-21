@@ -27,7 +27,7 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-uint32_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
+pde_t l1pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
 pte_t l2pt[PTES_PER_PT] __attribute__((aligned(1024*1024*4))) PHYS_DATA VISIBLE;
 /* This is only needed for 64-bit implementation, keep it for future */
 uint32_t l3pt[PTES_PER_PT] __attribute__((aligned(4096))) PHYS_DATA VISIBLE;
@@ -120,41 +120,28 @@ map_kernel_window(void)
   /*  4 MB Mega Pages that covers 256 MiB - total memory */
   for(i = 0; idx < limit ; idx++, phys++)
   {
-    l1pt[idx] = PTE_CREATE(phys << PTE_PPN_SHIFT, 0x16); 
-
-            /*pde_new_phys(
+    l1pt[idx] = pde_new(
             phys,
             0,
             0,
             0,
             RISCV_PTE_TYPE_SRWX,
             1); 
-             */
+  
   /* point to the next last 4MB physical page index */
 //PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-    
+   // PTE_CREATE(phys << PTE_PPN_SHIFT, 0x16); 
             
   }
 
   phys++;
 
-  printf("phys = 0x%x\n", phys << 22);
-  printf("PADDR_TOP = 0x%x\n", PADDR_TOP);
   assert((phys << 22) == PADDR_TOP);
 
   //l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
   //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
 
-  write_csr(sptbr, (uint32_t) &l1pt - 0x6FC00000);
-
-  //set_csr(mstatus, MSTATUS_IE1);
-  //set_csr(mstatus, MSTATUS_PRV1);
-  //clear_csr(mstatus, MSTATUS_VM);
-
-  //et_csr(mstatus, (long)VM_SV32 << __builtin_ctzl(MSTATUS_VM));
-
-  /* Set to supervisor mode */
-  //clear_csr(mstatus, (long) PRV_H << __builtin_ctzl(MSTATUS_PRV));
+  write_csr(sptbr, addrFromPPtr(l1pt));
 
 }
 
