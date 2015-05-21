@@ -27,7 +27,9 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-char riscv_kernel_stack[1024*1024] __attribute__((aligned(4096))) BOOT_DATA;
+char riscv_kernel_stack[4096] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
+pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
+pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 
 struct resolve_ret {
     paddr_t frameBase;
@@ -203,6 +205,12 @@ map_kernel_window(void)
      PPTR_GLOBALS_PAGE, 
      VMKernelOnly);
 
+  /* map stack page */
+  map_kernel_frame(
+     addrFromPPtr(riscv_kernel_stack),
+     PPTR_KERNEL_STACK, 
+     VMKernelOnly);
+   
   write_csr(sptbr, addrFromPPtr(l1pt));
 }
 

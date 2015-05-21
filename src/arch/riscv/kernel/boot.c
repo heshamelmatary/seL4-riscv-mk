@@ -149,6 +149,12 @@ try_init_kernel(
 
     map_kernel_window();
 
+    /* initialise the CPU */
+    init_cpu();
+
+    /* make the free memory available to alloc_region() */
+    init_freemem(ui_reg);
+
     // page directory
   return true;
 }
