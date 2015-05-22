@@ -161,6 +161,7 @@ map_kernel_window(void)
   {
     l1pt[idx] = pde_new(
             phys,
+            0,
             0,  /* sw */
             0,  /* dirty */ 
             0,  /* read */
@@ -189,6 +190,7 @@ map_kernel_window(void)
 
   l1pt[idx] = pde_new(
             VIRT1_TO_IDX(addrFromPPtr(l2pt)),
+            VIRT0_TO_IDX(addrFromPPtr(l2pt)),
             0,  /* sw */
             0,  /* dirty */ 
             0,  /* read */
@@ -214,8 +216,47 @@ map_kernel_window(void)
 }
 
 BOOT_CODE void
-map_it_pt_cap(cap_t pd_cap)
+map_it_pt_cap(cap_t pt_cap)
 {
+    pde_t* pd   = PDE_PTR(cap_page_table_cap_get_capPTMappedObject(pt_cap));
+    pte_t* pt   = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(pt_cap));
+    uint32_t pdIndex = cap_page_table_cap_get_capPTMappedIndex(pt_cap);
+    pde_t* targetSlot = pd + pdIndex;
+
+    printf("pt addr = 0x%x\n", pt);
+    printf("pt addr  from pptr= 0x%x\n", addrFromPPtr(pt));
+
+    *targetSlot = pde_new(
+                      VIRT1_TO_IDX((uint32_t)(addrFromPPtr(pt))), /* address */
+                      VIRT0_TO_IDX((uint32_t)(addrFromPPtr(pt))), /* address */
+                      0, /* sw */
+                      0, /* dirty */
+                      0, /* read */
+                      RISCV_PTE_TYPE_TABLE, /* type */
+                      1 /* valid */
+                      );
+}
+
+BOOT_CODE void
+map_it_frame_cap(cap_t frame_cap)
+{
+    pte_t* pt;
+    pte_t* targetSlot;
+    uint32_t index;
+    void*  frame = (void*)cap_frame_cap_get_capFBasePtr(frame_cap);
+
+    pt = PT_PTR(cap_frame_cap_get_capFMappedObject(frame_cap));
+    index = cap_frame_cap_get_capFMappedIndex(frame_cap);
+    targetSlot = pt + index;
+    *targetSlot = pte_new(
+                  VIRT1_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn1 */
+                  VIRT0_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn0 */
+                  0, /* sw */
+                  0, /* dirty */
+                  0, /* read */
+                  APFromVMRights(VMReadWrite), /* type */
+                  1 /* valid */
+                );
 }
 
 BOOT_CODE void
@@ -300,6 +341,7 @@ void unmapPageTable(pde_t* pd, uint32_t pdIndex)
 {
     pd[pdIndex] = pde_new(
                       0,  /* ppn1 */
+                      0,  /* ppn0 */
                       0,  /* sw */
                       0,  /* dirty */
                       0,  /* read */
@@ -453,6 +495,7 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
 
     pde = pde_new(
                       0,  /* ppn1 */
+                      0,  /* ppn0 */
                       0,  /* sw */
                       0,  /* dirty */
                       0,  /* read */

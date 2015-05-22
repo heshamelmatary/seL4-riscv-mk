@@ -381,8 +381,8 @@ block pte {
 }
 
 block pde {
-    field ppn1       12
-    padding               10
+    field ppn1            12
+    field ppn0            10
     field sw              3
     field dirty           1
     field read            1

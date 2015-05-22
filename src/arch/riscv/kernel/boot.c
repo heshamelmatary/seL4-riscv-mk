@@ -53,6 +53,25 @@ BOOT_CODE cap_t
 create_mapped_it_frame_cap(cap_t pd_cap, pptr_t pptr, vptr_t vptr, bool_t
 use_large, bool_t executable)
 {
+    cap_t cap;
+    pde_t *pd = PD_PTR(cap_page_directory_cap_get_capPDBasePtr(pd_cap));
+
+    uint32_t pd_index = VIRT1_TO_IDX(vptr);
+    uint32_t pt_index = VIRT0_TO_IDX(vptr);
+
+    pte_t *pt = ptrFromPAddr((pte_t *)(((pde_get_ppn1(pd[pd_index])) << 22) | ((pde_get_ppn0(pd[pd_index])) << 10)));
+    
+    cap = cap_frame_cap_new(
+                  FMAPPED_OBJECT_HIGH(PT_REF(pt)), /* capFMappedObjectHigh */
+                  pt_index,                        /* capFMappedIndex      */
+                  0,                    /* capFSize             */
+                  wordFromVMRights(VMReadWrite),   /* capFVMRights         */
+                  FMAPPED_OBJECT_LOW(PT_REF(pt)),  /* capFMappedObjectLow  */
+                  pptr                             /* capFBasePtr          */
+              );
+
+    map_it_frame_cap(cap);
+    return cap;
 }
 
 /* Create a page table for the initial thread */
@@ -100,7 +119,7 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
     write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), BI_CAP_IT_VSPACE), pd_cap);
 
     /* create all PT objs and caps necessary to cover userland image */
-    /*slot_pos_before = ndks_boot.slot_pos_cur;
+    slot_pos_before = ndks_boot.slot_pos_cur;
 
     for (pt_vptr = ROUND_DOWN(it_v_reg.start, PT_BITS + PAGE_BITS);
             pt_vptr < it_v_reg.end;
@@ -121,9 +140,8 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
     ndks_boot.bi_frame->ui_pt_caps = (slot_region_t) {
         slot_pos_before, slot_pos_after
     };
-
+    
     return pd_cap;
-   */
 }
 
 
@@ -301,7 +319,6 @@ try_init_kernel(
     }
 
   /* create the cap for managing thread domains */
-  /* FIXME */
     create_domain_cap(root_cnode_cap);
 
   /* create the IRQ CNode */
@@ -319,11 +336,12 @@ try_init_kernel(
      * to cover the user image + ipc buffer and bootinfo frames */
     it_pd_cap = create_it_address_space(root_cnode_cap, it_v_reg);
     if (cap_get_capType(it_pd_cap) == cap_null_cap) {
-        //return false;
+        printf("cap == null \n");
+        return false;
     }
 
     /* create all userland image frames */
-    /*create_frames_ret =
+    create_frames_ret =
         create_frames_of_region(
             root_cnode_cap,
             it_pd_cap,
@@ -335,7 +353,24 @@ try_init_kernel(
         return false;
     }
     ndks_boot.bi_frame->ui_frame_caps = create_frames_ret.region;
-    */
+    
+    /* create the idle thread */
+    if (!create_idle_thread()) {
+        return false;
+    }
+
+    /* create the initial thread */
+    if (!create_initial_thread(
+                root_cnode_cap,
+                it_pd_cap,
+                v_entry,
+                bi_frame_vptr,
+                ipcbuf_vptr,
+                ipcbuf_cap
+            )) {
+        return false;
+    }
+
   return true;
 }
 
