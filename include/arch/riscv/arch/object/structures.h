@@ -57,8 +57,8 @@ vmRightsFromWord(word_t w)
 
 #define PDE_PTR_PTR(r) ((pde_t **)r)
 
-#define PD_BITS 12
-#define PD_SIZE_BITS (PD_BITS+PDE_SIZE_BITS)
+#define PD_BITS 10
+#define PD_SIZE_BITS (PDE_SIZE_BITS + PD_BITS)
 #define PD_PTR(r) ((pde_t *)(r))
 #define PD_REF(p) ((unsigned int)(p))
 

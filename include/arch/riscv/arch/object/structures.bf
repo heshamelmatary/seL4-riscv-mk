@@ -60,7 +60,7 @@ block reply_cap {
     field capType 4
 }
 
--- This structure is modified on ARM for performance reasons. The user-visible
+-- This structure is modified on RISCV for performance reasons. The user-visible
 -- format of the data word is defined by cnode_capdata, below.
 block cnode_cap(capCNodeRadix, capCNodeGuardSize, capCNodeGuard,
                 capCNodePtr, capType) {
@@ -120,7 +120,7 @@ block domain_cap {
 
 ---- RISCV-specific caps
 
--- 4k, 64k, 1M, 16M frames
+-- 4K frames
 block frame_cap {
     field capFMappedObjectHigh  20
     field capFMappedIndex       12
@@ -147,8 +147,8 @@ block page_table_cap {
 block page_directory_cap {
     padding                 32
 
-    field_high capPDBasePtr 18
-    padding                 10
+    field_high capPDBasePtr 22
+    padding                  6
     field capType            4
 }
 
