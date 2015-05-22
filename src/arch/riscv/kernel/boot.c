@@ -340,6 +340,20 @@ try_init_kernel(
         return false;
     }
 
+    /* Create and map bootinfo frame cap */
+    create_bi_frame_cap(
+        root_cnode_cap,
+        it_pd_cap,
+        bi_frame_pptr,
+        bi_frame_vptr
+    );
+
+    /* create the initial thread's IPC buffer */
+    ipcbuf_cap = create_ipcbuf_frame(root_cnode_cap, it_pd_cap, ipcbuf_vptr);
+    if (cap_get_capType(ipcbuf_cap) == cap_null_cap) {
+        return false;
+    }
+
     /* create all userland image frames */
     create_frames_ret =
         create_frames_of_region(
@@ -359,6 +373,7 @@ try_init_kernel(
         return false;
     }
 
+    printf("Creating initial thread ... \n");
     /* create the initial thread */
     if (!create_initial_thread(
                 root_cnode_cap,
