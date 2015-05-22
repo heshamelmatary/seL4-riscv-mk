@@ -37,6 +37,96 @@ extern char ki_boot_end[1];
 /* pointer to end of kernel image */
 extern char ki_end[1];
 
+/* Create a frame cap for the initial thread. */
+
+static BOOT_CODE cap_t
+create_it_frame_cap(pptr_t pptr, vptr_t vptr, asid_t asid, bool_t use_large)
+{
+}
+
+BOOT_CODE cap_t
+create_unmapped_it_frame_cap(pptr_t pptr, bool_t use_large)
+{
+}
+
+BOOT_CODE cap_t
+create_mapped_it_frame_cap(cap_t pd_cap, pptr_t pptr, vptr_t vptr, bool_t
+use_large, bool_t executable)
+{
+}
+
+/* Create a page table for the initial thread */
+
+static BOOT_CODE cap_t
+create_it_page_table_cap(cap_t pd, pptr_t pptr, vptr_t vptr)
+{
+  cap_t cap;
+    uint32_t pd_index = VIRT1_TO_IDX(vptr);
+    cap = cap_page_table_cap_new(
+              cap_page_directory_cap_get_capPDBasePtr(pd), /* capPTMappedObject */
+              pd_index,                                    /* capPTMappedIndex  */
+              pptr                                         /* capPTBasePtr      */
+          );
+    map_it_pt_cap(cap);
+    return cap;
+}
+
+/* Create an address space for the initial thread.
+ * This includes page directory and page tables */
+BOOT_CODE static cap_t
+create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
+{
+    cap_t      pd_cap;
+    vptr_t     pt_vptr;
+    pptr_t     pt_pptr;
+    slot_pos_t slot_pos_before;
+    slot_pos_t slot_pos_after;
+    pptr_t pd_pptr;
+
+    /* create PD obj and cap */
+    pd_pptr = alloc_region(PD_SIZE_BITS);
+
+    printf("new pd_pptr = 0x%x \n", pd_pptr);
+    if (!pd_pptr) {
+        return cap_null_cap_new();
+    }
+    memzero(PDE_PTR(pd_pptr), 1 << PD_SIZE_BITS);
+    copyGlobalMappings(PDE_PTR(pd_pptr));
+    
+    pd_cap =
+        cap_page_directory_cap_new(
+            pd_pptr  /* capPDBasePtr    */
+        );
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), BI_CAP_IT_VSPACE), pd_cap);
+
+    /* create all PT objs and caps necessary to cover userland image */
+    /*slot_pos_before = ndks_boot.slot_pos_cur;
+
+    for (pt_vptr = ROUND_DOWN(it_v_reg.start, PT_BITS + PAGE_BITS);
+            pt_vptr < it_v_reg.end;
+            pt_vptr += BIT(PT_BITS + PAGE_BITS)) {
+        pt_pptr = alloc_region(PT_SIZE_BITS);
+        if (!pt_pptr) {
+            return cap_null_cap_new();
+        }
+        memzero(PTE_PTR(pt_pptr), 1 << PT_SIZE_BITS);
+        if (!provide_cap(root_cnode_cap,
+                         create_it_page_table_cap(pd_cap, pt_pptr, pt_vptr))
+           ) {
+            return cap_null_cap_new();
+        }
+    }
+
+    slot_pos_after = ndks_boot.slot_pos_cur;
+    ndks_boot.bi_frame->ui_pt_caps = (slot_region_t) {
+        slot_pos_before, slot_pos_after
+    };
+
+    return pd_cap;
+   */
+}
+
+
 /**
  * Split mem_reg about reserved_reg. If memory exists in the lower
  * segment, insert it. If memory exists in the upper segment, return it.
@@ -130,31 +220,6 @@ init_irqs(cap_t root_cnode_cap)
 {
 }
 
-/* Create a frame cap for the initial thread. */
-
-static BOOT_CODE cap_t
-create_it_frame_cap(pptr_t pptr, vptr_t vptr, asid_t asid, bool_t use_large)
-{
-}
-
-BOOT_CODE cap_t
-create_unmapped_it_frame_cap(pptr_t pptr, bool_t use_large)
-{
-}
-
-BOOT_CODE cap_t
-create_mapped_it_frame_cap(cap_t pd_cap, pptr_t pptr, vptr_t vptr, bool_t
-use_large, bool_t executable)
-{
-}
-
-/* Create a page table for the initial thread */
-
-static BOOT_CODE cap_t
-create_it_page_table_cap(cap_t pd, pptr_t pptr, vptr_t vptr, asid_t asid)
-{
-}
-
 BOOT_CODE static bool_t
 create_device_frames(cap_t root_cnode_cap)
 {
@@ -235,7 +300,42 @@ try_init_kernel(
         return false;
     }
 
-    // page directory
+  /* create the cap for managing thread domains */
+  /* FIXME */
+    create_domain_cap(root_cnode_cap);
+
+  /* create the IRQ CNode */
+    if (!create_irq_cnode()) {
+        return false;
+    }
+  
+    /* create the bootinfo frame */
+    bi_frame_pptr = allocate_bi_frame(0, 1, ipcbuf_vptr);
+    if (!bi_frame_pptr) {
+        return false;
+    }
+
+    /* Construct an initial address space with enough virtual addresses
+     * to cover the user image + ipc buffer and bootinfo frames */
+    it_pd_cap = create_it_address_space(root_cnode_cap, it_v_reg);
+    if (cap_get_capType(it_pd_cap) == cap_null_cap) {
+        //return false;
+    }
+
+    /* create all userland image frames */
+    /*create_frames_ret =
+        create_frames_of_region(
+            root_cnode_cap,
+            it_pd_cap,
+            ui_reg,
+            true,
+            pv_offset
+        );
+    if (!create_frames_ret.success) {
+        return false;
+    }
+    ndks_boot.bi_frame->ui_frame_caps = create_frames_ret.region;
+    */
   return true;
 }
 

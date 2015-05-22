@@ -27,7 +27,7 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
-char riscv_kernel_stack[4096] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
+char riscv_kernel_stack[1024*1024*4] __attribute__ ((aligned(4*1024))) BOOT_DATA;
 pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 
@@ -117,9 +117,8 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
     /* First level page table */
     uint32_t idx = VIRT0_TO_IDX(vaddr);
 
-    assert(vaddr >= PPTR_TOP); /* vaddr lies in the region the global PT covers */
-    //l1pt[idx1] = PTE_CREATE(((uint32_t) &l2pt) / RISCV_PGSIZE, PTE_TYPE_TABLE_GLOBAL);
-    //l2pt[idx2] = PTE_CREATE(paddr, PTE_TYPE_SRWX_GLOBAL);
+    /* vaddr lies in the region the global PT covers */
+    assert(vaddr > PPTR_TOP || vaddr == PPTR_TOP); 
 
     l2pt[idx] = pte_new(
       VIRT1_TO_IDX(paddr), /* ppn1 */
@@ -206,11 +205,11 @@ map_kernel_window(void)
      VMKernelOnly);
 
   /* map stack page */
-  map_kernel_frame(
+  /*map_kernel_frame(
      addrFromPPtr(riscv_kernel_stack),
      PPTR_KERNEL_STACK, 
      VMKernelOnly);
-   
+   */
   write_csr(sptbr, addrFromPPtr(l1pt));
 }
 
@@ -234,6 +233,12 @@ write_it_asid_pool(cap_t it_ap_cap, cap_t it_pd_cap)
 void
 copyGlobalMappings(pde_t *newPD)
 {
+    unsigned int i;
+    pde_t *global_pd = l1pt;
+
+    for (i = VIRT1_TO_IDX(kernelBase); i < BIT(PD_BITS); i++) {
+            newPD[i] = global_pd[i];
+    }
 }
 
 word_t * PURE
