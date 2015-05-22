@@ -19,6 +19,29 @@
 deriveCap_ret_t
 Arch_deriveCap(cte_t *slot, cap_t cap)
 {
+    deriveCap_ret_t ret;
+
+    switch (cap_get_capType(cap)) {
+    case cap_page_table_cap:
+        ret.cap = cap_page_table_cap_set_capPTMappedObject(cap, 0);
+        ret.status = EXCEPTION_NONE;
+        return ret;
+
+    case cap_page_directory_cap:
+        //ret.cap = cap_page_directory_cap_set_capPDMappedObject(cap, 0);
+        ret.status = EXCEPTION_NONE;
+        return ret;
+
+    case cap_frame_cap:
+        ret.cap = cap_frame_cap_set_capFMappedObject(cap, 0);
+        ret.status = EXCEPTION_NONE;
+        return ret;
+
+    default:
+        /* This assert has no equivalent in haskell,
+         * as the options are restricted by type */
+        fail("Invalid arch cap type");
+    }
 }
 
 cap_t CONST

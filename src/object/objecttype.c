@@ -56,6 +56,7 @@ word_t getObjectSize(word_t t, word_t userObjSize)
 deriveCap_ret_t
 deriveCap(cte_t *slot, cap_t cap)
 {
+    printf("deriveCap: cap = %d \n",cap_get_capType(cap));
     deriveCap_ret_t ret;
 
     if (isArchCap(cap)) {
