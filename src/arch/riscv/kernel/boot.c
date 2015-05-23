@@ -209,7 +209,9 @@ init_freemem(region_t ui_reg)
     /* Force ordering and exclusivity of reserved regions. */
     assert(res_reg[0].start < res_reg[0].end);
     assert(res_reg[1].start < res_reg[1].end);
-    assert(res_reg[0].end  <= res_reg[1].start);
+
+    printf("res_reg[0].end = 0x%x \nres_reg[1].start = 0x%x\n", res_reg[0].end, res_reg[1].start);
+    assert(res_reg[0].end < res_reg[1].start || res_reg[0].end  == res_reg[1].start);
 
     for (i = 0; i < get_num_avail_p_regs(); i++) {
         cur_reg = paddr_to_pptr_reg(get_avail_p_reg(i));
@@ -386,7 +388,43 @@ try_init_kernel(
         return false;
     }
 
+    printf("Creating untyped memory... \n");
+  /* convert the remaining free memory into UT objects and provide the caps */
+    if (!create_untypeds(
+                root_cnode_cap,
+    (region_t) {
+    kernelBase, (pptr_t)ki_boot_end
+    } /* reusable boot code/data */
+            )) {
+        return false;
+    }
+
   return true;
+}
+
+/* FIXME: The following is a dirty hack to get over the undefined reference to the 
+ &  correspoding libgcc reference, need to figure out why they are not linked
+ */
+uint32_t __clzsi2(uint32_t x)
+{
+  uint32_t count = 0;
+  while ( !(x & 0x80000000) && count <= 32)
+  {
+    x <<= 1;
+    count++;
+  }
+  return count;
+}
+   
+uint32_t __ctzsi2(uint32_t x)
+{
+  uint32_t count = 0;
+  while ( !(x & 0x000000001) && count <= 32)
+  {
+    x >>= 1;
+    count++;
+  }
+  return count;
 }
 
 BOOT_CODE VISIBLE void
@@ -401,12 +439,7 @@ init_kernel(
 
   printf("********* Platform Information ********** \n");
   init_plat();
-
-  /*try_init_kernel(0x00000000,
-                  0xFFFFFFFF,
-                  0xF0000000,
-                  0xF0000000);
-    */
+    
   printf("Initializing platform ...... \n");
 
     bool_t result;
