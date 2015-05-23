@@ -389,7 +389,7 @@ try_init_kernel(
     }
 
     printf("Creating untyped memory... \n");
-  /* convert the remaining free memory into UT objects and provide the caps */
+    /* convert the remaining free memory into UT objects and provide the caps */
     if (!create_untypeds(
                 root_cnode_cap,
     (region_t) {
@@ -399,6 +399,13 @@ try_init_kernel(
         return false;
     }
 
+    /* no shared-frame caps (RISCV has no multikernel support) */
+    ndks_boot.bi_frame->sh_frame_caps = S_REG_EMPTY;
+
+    /* finalise the bootinfo frame */
+    bi_finalise();
+
+    /* TODO user access */
   return true;
 }
 
@@ -408,7 +415,7 @@ try_init_kernel(
 uint32_t __clzsi2(uint32_t x)
 {
   uint32_t count = 0;
-  while ( !(x & 0x80000000) && count <= 32)
+  while ( !(x & 0x80000000U) && count < 33)
   {
     x <<= 1;
     count++;

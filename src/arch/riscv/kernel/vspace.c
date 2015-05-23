@@ -118,7 +118,7 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
     uint32_t idx = VIRT0_TO_IDX(vaddr);
 
     /* vaddr lies in the region the global PT covers */
-    assert(vaddr > PPTR_TOP || vaddr == PPTR_TOP); 
+    assert(vaddr >= PPTR_TOP); 
 
     l2pt[idx] = pte_new(
       VIRT1_TO_IDX(paddr), /* ppn1 */
