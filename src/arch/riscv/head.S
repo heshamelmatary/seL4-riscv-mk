@@ -32,7 +32,3 @@ global_start:
   la s0, init_kernel
   jr s0  
 
-__clzsi2:
-  nop
-__ctzsi2:
-  nop
