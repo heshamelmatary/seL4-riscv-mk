@@ -52,42 +52,6 @@ static pde_t PURE loadHWASID(asid_t asid);
 static bool_t PURE pteCheckIfMapped(pte_t *pte);
 static bool_t PURE pdeCheckIfMapped(pde_t *pde);
 
-/* The following two functions are used during bootstraping and before MMU
- * enable. They are copied from structures_gen.h but placed into physical 
- * memory.
- */
-PHYS_CODE static inline pde_t __attribute__((__const__))
-pde_new_phys(uint32_t ppn1, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t type, uint32_t valid) {
-    pde_t pde;
-
-    pde.words[0] = 0;
-
-    pde.words[0] |= (ppn1 & 0x00000fff) << 20;
-    pde.words[0] |= (sw & 0x7) << 7;
-    pde.words[0] |= (dirty & 0x1) << 6;
-    pde.words[0] |= (read & 0x1) << 5;
-    pde.words[0] |= (type & 0xf) << 1;
-    pde.words[0] |= (valid & 0x1) << 0;
-
-    return pde;
-}
-
-BOOT_CODE static inline pte_t __attribute__((__const__))
-pte_new_phys(uint32_t ppn1, uint32_t ppn0, uint32_t sw, uint32_t dirty, uint32_t read, uint32_t type, uint32_t valid) {
-    pte_t pte;
-
-    pte.words[0] = 0;
-
-    pte.words[0] |= (ppn1 & 0x00000fff) << 20;
-    pte.words[0] |= (ppn0 & 0x3ff) << 10;
-    pte.words[0] |= (sw & 0x7) << 7;
-    pte.words[0] |= (dirty & 0x1) << 6;
-    pte.words[0] |= (read & 0x1) << 5;
-    pte.words[0] |= (type & 0xf) << 1;
-    pte.words[0] |= (valid & 0x1) << 0;
-
-    return pte;
-}
 
 static word_t CONST
 APFromVMRights(vm_rights_t vm_rights)
@@ -144,75 +108,55 @@ map_kernel_window(void)
     phys = VIRT1_TO_IDX(0x00400000);
     idx  = VIRT1_TO_IDX(kernelBase);
     limit = idx + 63;
- /* for(i = 0; i < idx ; i++)
-  {
-    l1pt[i] = pde_new_phys(i,
-            0,
-            0,
-            0,
-            RISCV_PTE_TYPE_SRWX,
-            1);
-  }
-*/
-//PTE_CREATE(i << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
      
-  /*  4 MB Mega Pages that covers 256 MiB - total memory */
-  for(i = 0; idx < limit ; idx++, phys++)
-  {
+    /*  4 MB Mega Pages that covers 256 MiB - total memory */
+    for(i = 0; idx < limit ; idx++, phys++)
+    {
+      l1pt[idx] = pde_new(
+              phys,
+              0,
+              0,  /* sw */
+              0,  /* dirty */ 
+              0,  /* read */
+              RISCV_PTE_TYPE_SRWX, /* type */
+              1 /* valid */
+       );    
+    }
+
+    /* point to the next last 4MB physical page index */
+    phys++;
+    idx++;
+
+    assert((phys << 22) == PADDR_TOP);
+
+    /* Map last 4MiB Page to page tables - 80400000 */
+
     l1pt[idx] = pde_new(
-            phys,
-            0,
-            0,  /* sw */
-            0,  /* dirty */ 
-            0,  /* read */
-            RISCV_PTE_TYPE_SRWX, /* type */
-            1 /* valid */
-     ); 
-  
-  
-  //PTE_CREATE(phys << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-   // PTE_CREATE(phys << PTE_PPN_SHIFT, 0x16); 
-            
-  }
+              VIRT1_TO_IDX(addrFromPPtr(l2pt)),
+              VIRT0_TO_IDX(addrFromPPtr(l2pt)),
+              0,  /* sw */
+              0,  /* dirty */ 
+              0,  /* read */
+              RISCV_PTE_TYPE_TABLE, /* type */
+              1 /* valid */
+       );
 
-  /* point to the next last 4MB physical page index */
-  phys++;
-  idx++;
+    /* now start initialising the page table */
+    memzero(l2pt, 1 << 12);
+    
+    /* map global page */
+    map_kernel_frame(
+       addrFromPPtr(riscvKSGlobalsFrame),
+       PPTR_GLOBALS_PAGE, 
+       VMKernelOnly);
 
-  assert((phys << 22) == PADDR_TOP);
-
-  //l1pt[VIRT1_TO_IDX(kernelBase) + 1] = PTE_CREATE(1 << PTE_PPN_SHIFT, PTE_TYPE_SRWX);
-  //map_kernel_frame(&test_area, &test_area, PTE_TYPE_SRWX);
-
-  /* Map last 4MiB Page to page tables - 80400000 */
-  
-  printf("l2pt phys = 0x%x\n", VIRT1_TO_IDX(addrFromPPtr(l2pt)));
-
-  l1pt[idx] = pde_new(
-            VIRT1_TO_IDX(addrFromPPtr(l2pt)),
-            VIRT0_TO_IDX(addrFromPPtr(l2pt)),
-            0,  /* sw */
-            0,  /* dirty */ 
-            0,  /* read */
-            RISCV_PTE_TYPE_TABLE, /* type */
-            1 /* valid */
-     );
-  /* now start initialising the page table */
-  memzero(l2pt, 1 << 12);
-  
-  /* map global page */
-  map_kernel_frame(
-     addrFromPPtr(riscvKSGlobalsFrame),
-     PPTR_GLOBALS_PAGE, 
-     VMKernelOnly);
-
-  /* map stack page */
-  /*map_kernel_frame(
-     addrFromPPtr(riscv_kernel_stack),
-     PPTR_KERNEL_STACK, 
-     VMKernelOnly);
-   */
-  write_csr(sptbr, addrFromPPtr(l1pt));
+    /* map stack page */
+    /*map_kernel_frame(
+       addrFromPPtr(riscv_kernel_stack),
+       PPTR_KERNEL_STACK, 
+       VMKernelOnly);
+     */
+    write_csr(sptbr, addrFromPPtr(l1pt));
 }
 
 BOOT_CODE void
@@ -222,13 +166,13 @@ map_it_pt_cap(cap_t pt_cap)
     pte_t* pt   = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(pt_cap));
     uint32_t pdIndex = cap_page_table_cap_get_capPTMappedIndex(pt_cap);
     pde_t* targetSlot = pd + pdIndex;
+    int i = 0;
 
-    printf("pt addr = 0x%x\n", pt);
-    printf("pt addr  from pptr= 0x%x\n", addrFromPPtr(pt));
+    uint32_t pt_phys_to_pde = (addrFromPPtr(pt))/ 0x1000;
 
     *targetSlot = pde_new(
-                      VIRT1_TO_IDX((uint32_t)(addrFromPPtr(pt))), /* address */
-                      VIRT0_TO_IDX((uint32_t)(addrFromPPtr(pt))), /* address */
+                      pt_phys_to_pde >> 10, /* address */
+                      (0x3ff & pt_phys_to_pde), /* address */
                       0, /* sw */
                       0, /* dirty */
                       0, /* read */
@@ -248,13 +192,14 @@ map_it_frame_cap(cap_t frame_cap)
     pt = PT_PTR(cap_frame_cap_get_capFMappedObject(frame_cap));
     index = cap_frame_cap_get_capFMappedIndex(frame_cap);
     targetSlot = pt + index;
+
     *targetSlot = pte_new(
                   VIRT1_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn1 */
                   VIRT0_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn0 */
                   0, /* sw */
                   0, /* dirty */
                   0, /* read */
-                  APFromVMRights(VMReadWrite), /* type */
+                  RISCV_PTE_TYPE_SRWX, /* type */
                   1 /* valid */
                 );
 }

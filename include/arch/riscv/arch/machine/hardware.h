@@ -31,7 +31,7 @@
 
 /* Virtual address to index conforming sv32 PTE format */ 
 #define VIRT1_TO_IDX(addr) ((addr) >> 22)
-#define VIRT0_TO_IDX(addr) (((addr) >> 10) & 0x000003FF)
+#define VIRT0_TO_IDX(addr) (((addr) >> 12) & 0x000003FF)
 
 #define PTE_TABLE(PTE) ((0x0000000AU >> ((PTE) & 0x1F)) & 1)
 #define PTE_UR(PTE)    ((0x0000AAA0U >> ((PTE) & 0x1F)) & 1)

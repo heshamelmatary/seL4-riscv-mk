@@ -37,13 +37,6 @@ extern char ki_boot_end[1];
 /* pointer to end of kernel image */
 extern char ki_end[1];
 
-/* Create a frame cap for the initial thread. */
-
-static BOOT_CODE cap_t
-create_it_frame_cap(pptr_t pptr, vptr_t vptr, asid_t asid, bool_t use_large)
-{
-}
-
 BOOT_CODE cap_t
 create_unmapped_it_frame_cap(pptr_t pptr, bool_t use_large)
 {
@@ -58,9 +51,16 @@ use_large, bool_t executable)
 
     uint32_t pd_index = VIRT1_TO_IDX(vptr);
     uint32_t pt_index = VIRT0_TO_IDX(vptr);
+    uint32_t ppn1, ppn0, pt_resolve;
 
-    pte_t *pt = ptrFromPAddr((pte_t *)(((pde_get_ppn1(pd[pd_index])) << 22) | ((pde_get_ppn0(pd[pd_index])) << 10)));
-    
+    ppn1 = pde_get_ppn1(pd[pd_index]);
+    ppn0 = pde_get_ppn0(pd[pd_index]);
+
+    pt_resolve = ppn1 << 10 | ppn0;
+    pt_resolve = pt_resolve * 0x1000;
+
+    pte_t *pt = ptrFromPAddr(pt_resolve);
+
     cap = cap_frame_cap_new(
                   FMAPPED_OBJECT_HIGH(PT_REF(pt)), /* capFMappedObjectHigh */
                   pt_index,                        /* capFMappedIndex      */
@@ -79,13 +79,15 @@ use_large, bool_t executable)
 static BOOT_CODE cap_t
 create_it_page_table_cap(cap_t pd, pptr_t pptr, vptr_t vptr)
 {
-  cap_t cap;
+
+    cap_t cap;
     uint32_t pd_index = VIRT1_TO_IDX(vptr);
     cap = cap_page_table_cap_new(
               cap_page_directory_cap_get_capPDBasePtr(pd), /* capPTMappedObject */
               pd_index,                                    /* capPTMappedIndex  */
               pptr                                         /* capPTBasePtr      */
           );
+
     map_it_pt_cap(cap);
     return cap;
 }
@@ -105,7 +107,6 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
     /* create PD obj and cap */
     pd_pptr = alloc_region(PD_SIZE_BITS);
 
-    printf("new pd_pptr = 0x%x \n", pd_pptr);
     if (!pd_pptr) {
         return cap_null_cap_new();
     }
@@ -128,6 +129,7 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
         if (!pt_pptr) {
             return cap_null_cap_new();
         }
+
         memzero(PTE_PTR(pt_pptr), 1 << PT_SIZE_BITS);
         if (!provide_cap(root_cnode_cap,
                          create_it_page_table_cap(pd_cap, pt_pptr, pt_vptr))
@@ -140,7 +142,8 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
     ndks_boot.bi_frame->ui_pt_caps = (slot_region_t) {
         slot_pos_before, slot_pos_after
     };
-    
+
+    write_csr(sptbr, addrFromPPtr(pd_pptr));
     return pd_cap;
 }
 
@@ -210,8 +213,7 @@ init_freemem(region_t ui_reg)
     assert(res_reg[0].start < res_reg[0].end);
     assert(res_reg[1].start < res_reg[1].end);
 
-    printf("res_reg[0].end = 0x%x \nres_reg[1].start = 0x%x\n", res_reg[0].end, res_reg[1].start);
-    assert(res_reg[0].end < res_reg[1].start || res_reg[0].end  == res_reg[1].start);
+    assert(res_reg[0].end <= res_reg[1].start);
 
     for (i = 0; i < get_num_avail_p_regs(); i++) {
         cur_reg = paddr_to_pptr_reg(get_avail_p_reg(i));
@@ -277,10 +279,6 @@ try_init_kernel(
     /* kernel successfully initialized */
 
     printf("Bootstrapping kernel\n");
-    printf("ui_p_reg_start = %x \n", ui_p_reg_start);
-    printf("ui_p_reg_end = %x \n", ui_p_reg_end);
-    printf("pv_offset = %x \n", pv_offset);
-    printf("v_entry = %x \n", v_entry);
 
     cap_t root_cnode_cap;
     cap_t it_pd_cap;
@@ -356,6 +354,7 @@ try_init_kernel(
         return false;
     }
 
+    printf("Creating userland image frames \n");
     /* create all userland image frames */
     create_frames_ret =
         create_frames_of_region(
@@ -387,6 +386,8 @@ try_init_kernel(
             )) {
         return false;
     }
+
+    printf("INITIAL: ksCurThread = 0x%x\n", ksCurThread);
 
     printf("Creating untyped memory... \n");
     /* convert the remaining free memory into UT objects and provide the caps */
@@ -434,6 +435,8 @@ uint32_t __ctzsi2(uint32_t x)
   return count;
 }
 
+typedef void (*user_entry_t)(void);
+
 BOOT_CODE VISIBLE void
 init_kernel(
     paddr_t ui_p_reg_start,
@@ -442,9 +445,8 @@ init_kernel(
     vptr_t  v_entry
 )
 {
-  test_area[0] = 0xD;
-
   printf("********* Platform Information ********** \n");
+
   init_plat();
     
   printf("Initializing platform ...... \n");
@@ -460,11 +462,8 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
-    printf("Trying to write to invalid page ... \n");
-  *((char *) 0x80000FFF) = 0xD;
-
-  printf("Exiting....\n");
-  halt();
-  while(1);
+  printf("ksCurThread = 0x%x\n", *ksCurThread);
+  printf("Jumping to user....\n");
+  ((user_entry_t) 0x10000)();
 }
 
