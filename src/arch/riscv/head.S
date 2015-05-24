@@ -25,10 +25,12 @@ global_start:
  
   #li t0, 0x00000004; csrc mstatus, t0 # run in supervisor mode
   #li t0, MSTATUS_IE; csrs mstatus, t0 # enable interrupts
-
+  la gp, 0
   la tp, test_area
 
   la sp, (riscv_kernel_stack)
-  la s0, init_kernel
-  jr s0  
+  la s1, init_kernel
+  jalr x0, s1, 0
 
+  la s0, ksCurThread
+  jr s0
