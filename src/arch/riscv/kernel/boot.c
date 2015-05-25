@@ -462,8 +462,12 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
-  printf("ksCurThread = 0x%x\n", *ksCurThread);
-  printf("Jumping to user....\n");
-  ((user_entry_t) 0x10000)();
+    printf("ksCurThread = 0x%x\n", *ksCurThread);
+    printf("Jumping to user....\n");
+
+    /* Set to user mode */
+    clear_csr(sstatus, 0x10);
+    write_csr(sepc, v_entry);
+    asm volatile ("eret");
 }
 

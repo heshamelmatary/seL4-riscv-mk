@@ -452,7 +452,7 @@ try_init_kernel(
 
 #ifdef CONFIG_BENCHMARK
     armv_init_ccnt();
-#endif /* CONFIG_BENCHMARK */
+#endif /* CONFIG_BENCHM*ARK */
 
     /* Export selected CPU features for access by PL0 */
     armv_init_user_access();

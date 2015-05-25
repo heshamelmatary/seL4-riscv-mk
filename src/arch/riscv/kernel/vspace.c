@@ -64,10 +64,10 @@ APFromVMRights(vm_rights_t vm_rights)
         return RISCV_PTE_TYPE_SRWX;
 
     case VMReadOnly:
-        return RISCV_PTE_TYPE_SR;
+        return RISCV_PTE_TYPE_UR_SR;
 
     case VMReadWrite:
-        return RISCV_PTE_TYPE_SRW;
+        return RISCV_PTE_TYPE_URWX_SRWX;
 
     default:
         fail("Invalid VM rights");
@@ -199,7 +199,7 @@ map_it_frame_cap(cap_t frame_cap)
                   0, /* sw */
                   0, /* dirty */
                   0, /* read */
-                  RISCV_PTE_TYPE_SRWX, /* type */
+                  APFromVMRights(VMReadWrite), /* type */
                   1 /* valid */
                 );
 }
