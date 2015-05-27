@@ -159,13 +159,13 @@ typedef struct cte cte_t;
 static inline word_t mdb_node_get_cdtLeft(mdb_node_t mdb)
 {
     word_t cte = mdb_node_get_cdtLeft_(mdb) << 2;
-    return cte == 0 ? 0 : cte | 0x60000000;
+    return cte == 0 ? 0 : cte | 0xE0000000;
 }
 
 static inline word_t mdb_node_get_cdtRight(mdb_node_t mdb)
 {
     word_t cte = mdb_node_get_cdtRight_(mdb) << 2;
-    return cte == 0 ? 0 : cte | 0x60000000;
+    return cte == 0 ? 0 : cte | 0xE0000000;
 }
 
 static inline void mdb_node_ptr_set_cdtLeft(mdb_node_t *mdb, word_t cte)

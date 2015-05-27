@@ -82,7 +82,7 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
     uint32_t idx = VIRT0_TO_IDX(vaddr);
 
     /* vaddr lies in the region the global PT covers */
-    assert(vaddr >= PPTR_TOP); 
+    assert(vaddr >= PPTR_TOP);
 
     l2pt[idx] = pte_new(
       VIRT1_TO_IDX(paddr), /* ppn1 */
@@ -105,7 +105,7 @@ map_kernel_window(void)
 
     /* mapping of kernelBase (virtual address) to kernel's physBase  */
     /* up to end of virtual address space minus 4MB */
-    phys = VIRT1_TO_IDX(0x00400000);
+    phys = VIRT1_TO_IDX(physBase);
     idx  = VIRT1_TO_IDX(kernelBase);
     limit = idx + 63;
      
@@ -123,11 +123,13 @@ map_kernel_window(void)
        );    
     }
 
-    /* point to the next last 4MB physical page index */
+    printf("(phys << 22) = %x \n", (phys << 22));
+    printf("PADDR_TOP = %x \n", PADDR_TOP);
+    assert((phys << 22) == PADDR_TOP);
+
+        /* point to the next last 4MB physical page index */
     phys++;
     idx++;
-
-    assert((phys << 22) == PADDR_TOP);
 
     /* Map last 4MiB Page to page tables - 80400000 */
 
