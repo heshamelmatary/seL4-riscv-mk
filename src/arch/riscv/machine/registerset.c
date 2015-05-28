@@ -19,7 +19,7 @@ const register_t frameRegisters[] = {
 };
 
 const register_t gpRegisters[] = {
-    ra, v0, v1, a0, a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, t3, t4
+    a1, a2, a3, a4, a5, a6, a7
 };
 
 const register_t exceptionMessage[] = {

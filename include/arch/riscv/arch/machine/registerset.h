@@ -18,44 +18,43 @@ enum _register {
 
   x1 = 1, ra = 1, LR = 1,
 
-  x2,
+  x2 = 2, SP = 2, sp = 2,
   x3,
   x4,
-  x5,
-  x6,
-  x7,
-  x8,
-  x9,
-  x10,
-  x11,
-  x12,
-  x13,
-  x14 = 14, SP = 14, sp = 14,
-  x15,
 
-  /* v0-v1 -> x16-x17 return values */
-  x16 = 16, v0 = 16,
-  x17 = 17, v1 = 17,
+  x5, t0 = 5,
+  x6, t1 = 6,
+  x7, t2 = 7,
+  x8, s0 = 7,
+  x9, s1 = 8,
 
-  /* a0-a7 -> x18-x25 function arguments */
-  x18 = 18, a0 = 18, capRegister = 18, badgeRegister = 18,
-  x19 = 19, a1 = 19, msgInfoRegister = 19,
-  x20 = 20, a2 = 20,
-  x21 = 21, a3 = 21,
-  x22 = 22, a4 = 22,
-  x23 = 23, a5 = 23,
-  x24 = 24, a6 = 24,
-  x25 = 25, a7 = 25,
+  /* x10-x17 > a0-a7 */
+  x10 = 10, a0 = 10, capRegister = 10, badgeRegister = 10,
+  x11 = 11,  a1 = 11, msgInfoRegister = 11,
+  x12 = 12, a2 = 12,
+  x13 = 13, a3 = 13,
+  x14 = 14, a4 = 14,
+  x15 = 15, a5 = 15,
+  x16 = 16, a6 = 16,
+  x17 = 17, a7 = 17,
 
-  /* x26-x30 -> t0-t4 Temporaries */
-  x26 = 26, t0 = 26,
-  x27 = 27, t1 = 27,
-  x28 = 28, t2 = 28,
-  x29 = 29, t3 = 29,
-  x30 = 30, t4 = 30,
+  x18 = 18, s2 = 18,
+  x19 = 19, s3 = 19,
+  x20 = 20, s4 = 20,
+  x21 = 21, s5 = 21,
+  x22 = 22, s6 = 22,
+  x23 = 23, s7 = 23,
+  x24 = 24, s8 = 24,
+  x25 = 25, s9 = 25,
+  x26 = 26, s10 = 26,
+  x27 = 27, s11 = 27,
 
-  x31 = 31, gp = 31,
-   n_contextRegisters
+  x28 = 28, t3 = 28,
+  x29 = 29, t4 = 29,
+  x30 = 30, t5 = 30,
+  x31 = 31, t6 = 31,
+
+  n_contextRegisters
 };
 
 typedef uint32_t register_t;
@@ -66,7 +65,7 @@ enum messageSizes {
     n_frameRegisters = 10,
     n_gpRegisters = 7,
     n_exceptionMessage = 3,
-    n_syscallMessage = 12,
+    n_syscallMessage = 12
 };
 
 extern const register_t msgRegisters[] VISIBLE;

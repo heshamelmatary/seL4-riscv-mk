@@ -177,10 +177,15 @@ void printstr(char *s)
   syscall(SYS_write, 1, (long) s, strlen(s));
 }
 
+/*static __thread char buf[64] __attribute__((aligned(64)));
+static __thread int  buflen = 0;
+*/
+
+static char buf[64] __attribute__((aligned(64)));
+static int  buflen = 0;
+
 int putchar(int ch)
 {
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int  buflen = 0;
   buf[buflen++] = ch;
   if (ch == '\n' || buflen == sizeof(buf))
   {
