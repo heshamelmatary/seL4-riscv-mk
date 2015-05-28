@@ -32,5 +32,8 @@ global_start:
   
 
   la sp, (riscv_kernel_stack)
-  la s1, init_kernel
-  jalr x0, s1, 0
+  jal init_kernel
+  
+  la tp, ksCurThread
+  lw sp, 0(tp)
+  eret

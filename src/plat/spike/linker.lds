@@ -19,12 +19,14 @@ KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
 SECTIONS
 {
-    /*.vector 0x100:
+    . = . + KERNEL_BASE;
+
+    .vector 0xF0000000:
     {
         *(.vector) 
     }
-    */
-    . = . + KERNEL_BASE;
+
+    . = ALIGN(4M);
 
     .boot . : AT(ADDR(.boot) - KERNEL_OFFSET)
     {
