@@ -7,33 +7,14 @@
 
 .section .boot.text, "ax"
 .global _start
+.global trap_entry
 .extern global_start
 
+/* This would be mapped at 0xFFC00000 and called as is from elfloader (M-mode) when there's a syscall from the user*/
+
 _start:
-  la  s0, trap_entry
-  csrw   stvec, s0
   la s0, global_start
   jr s0
-
-/*.section .vector, "ax"*/
-/* 0x100 user-level trap */
-  .align 6
-  la s0, trap_entry
-  jr  s0
-/* 0x140 supervisor level trap */
-  .align 6
-  #mrts
-  la s0, trap_entry
-  jr s0
-/* 0x1C0 Machine level trap */
-  .align 6
-  la s0, trap_entry
-  jr s0
-/* 0x1FC external interrupt */
-  .align 6
-  la s0, trap_entry
-  jr s0
-/* 0x200 reset */
 
 trap_entry:
   addi sp, sp, -272
