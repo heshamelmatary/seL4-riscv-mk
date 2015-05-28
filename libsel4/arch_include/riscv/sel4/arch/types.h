@@ -40,7 +40,22 @@ typedef seL4_CPtr seL4_RISCV_IPI;
 
 typedef struct seL4_UserContext_ {
    /* FIXME: All registers for now */
-   seL4_Word[32];
+   seL4_Word ra;
+   seL4_Word a0;
+   seL4_Word a1;
+   seL4_Word a2;
+   seL4_Word a3;
+   seL4_Word a4;
+   seL4_Word a5;
+   seL4_Word a6;
+   seL4_Word a7;
+   seL4_Word v0;
+   seL4_Word v1;
+   seL4_Word t0;
+   seL4_Word t1;
+   seL4_Word t2;
+   seL4_Word t3;
+   seL4_Word t4;
 } seL4_UserContext;
 
 typedef enum {
@@ -61,8 +76,8 @@ typedef enum {
     seL4_RISCV_PTE_TYPE_SR_GLOBAL = 12,
     seL4_RISCV_PTE_TYPE_SRW_GLOBAL = 13,
     seL4_RISCV_PTE_TYPE_SRX_GLOBAL = 14,
-    seL4_RISCV_PTE_TYPE_SRWX_GLOBAL = 15
-    SEL4_FORCE_LONG_ENUM(seL4_RISCV_VMAttributes),
+    seL4_RISCV_PTE_TYPE_SRWX_GLOBAL = 15,
+    SEL4_FORCE_LONG_ENUM(seL4_RISCV_VMAttributes)
 } seL4_RISCV_VMAttributes;
 
 #endif

@@ -9,22 +9,14 @@
 #define __LIBSEL4_ARCH_INVOCATION_H
 
 enum arch_invocation_label {
-    ARMPDClean_Data = nInvocationLabels + 0,
-    ARMPDInvalidate_Data = nInvocationLabels + 1,
-    ARMPDCleanInvalidate_Data = nInvocationLabels + 2,
-    ARMPDUnify_Instruction = nInvocationLabels + 3,
-    ARMPageTableMap = nInvocationLabels + 4,
-    ARMPageTableUnmap = nInvocationLabels + 5,
-    ARMPageMap = nInvocationLabels + 6,
-    ARMPageRemap = nInvocationLabels + 7,
-    ARMPageUnmap = nInvocationLabels + 8,
-    ARMPageClean_Data = nInvocationLabels + 9,
-    ARMPageInvalidate_Data = nInvocationLabels + 10,
-    ARMPageCleanInvalidate_Data = nInvocationLabels + 11,
-    ARMPageUnify_Instruction = nInvocationLabels + 12,
-    ARMPageGetAddress = nInvocationLabels + 13,
-    ARMASIDControlMakePool = nInvocationLabels + 14,
-    ARMASIDPoolAssign = nInvocationLabels + 15,
+    RISCVPageDirectoryMap = nInvocationLabels + 0,
+    RISCVPageDirectoryUnmap = nInvocationLabels + 1,
+    RISCVPageTableMap = nInvocationLabels + 2,
+    RISCVPageTableUnmap = nInvocationLabels + 3,
+    RISCVPageMap = nInvocationLabels + 4,
+    RISCVPageUnmap = nInvocationLabels + 5,
+    RISCVPageClean_Data = nInvocationLabels + 6,
+    RISCVPageGetAddress = nInvocationLabels + 7,
     nArchInvocationLabels
 };
 

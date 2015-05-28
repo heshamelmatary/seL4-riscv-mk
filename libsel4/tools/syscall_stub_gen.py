@@ -59,6 +59,7 @@ MAX_MESSAGE_LENGTH = 32
 MESSAGE_REGISTERS_FOR_ARCH = {
     "arm": 4,
     "ia32": 2,
+    "riscv":4
 }
 
 class Type(object):
@@ -233,6 +234,14 @@ arch_types = {
         CapType("seL4_IA32_IPI"),
         StructType("seL4_UserContext", WORD_SIZE_BITS * 13),
         StructType("seL4_VCPUContext", WORD_SIZE_BITS * 7),
+        ],
+
+    "riscv" : [
+        Type("seL4_RISCV_VMAttributes", WORD_SIZE_BITS),
+        CapType("seL4_RISCV_Page"),
+        CapType("seL4_RISCV_PageTable"),
+        CapType("seL4_RISCV_PageDirectory"),
+        StructType("seL4_UserContext", WORD_SIZE_BITS * 16),
         ]
     }
 

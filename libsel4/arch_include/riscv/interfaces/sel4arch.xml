@@ -10,39 +10,24 @@
   -->
 <api>
 	<struct name="seL4_UserContext">
-		<member name="status"/>
-		<member name="epc"/>
-		<member name="x1"/>
-		<member name="x2"/>
-		<member name="x3"/>
-		<member name="x4"/>
-		<member name="x5"/>
-		<member name="x6"/>
-		<member name="x7"/>
-		<member name="x8"/>
-		<member name="x9"/>
-		<member name="x10"/>
-		<member name="x11"/>
-		<member name="x12"/>
-		<member name="x13"/>
-		<member name="x14"/>
-		<member name="x15"/>
-		<member name="x16"/>
-		<member name="x17"/>
-		<member name="x18"/>
-		<member name="x19"/>
-		<member name="x20"/>
-		<member name="x21"/>
-		<member name="x22"/>
-		<member name="x23"/>
-		<member name="x24"/>
-		<member name="x25"/>
-		<member name="x26"/>
-		<member name="x27"/>
-		<member name="x28"/>
-		<member name="x29"/>
-		<member name="x30"/>
-		<member name="x31"/>
+		<member name="ra"/>
+		<member name="v0"/>
+		<member name="v1"/>
+		<member name="a0"/>
+		<member name="a1"/>
+		<member name="a2"/>
+		<member name="a3"/>
+		<member name="a4"/>
+		<member name="a5"/>
+		<member name="a6"/>
+		<member name="a7"/>
+		<member name="v0"/>
+		<member name="v1"/>
+		<member name="t0"/>
+		<member name="t1"/>
+		<member name="t2"/>
+		<member name="t3"/>
+		<member name="t4"/>
     </struct>
 
   <interface name="seL4_RISCV_PageDirectory">
@@ -67,11 +52,11 @@
 		<method id="RISCVPageMap" name="Map">
 			<param dir="in" name="pd" type="seL4_RISCV_PageDirectory"/>
 			<param dir="in" name="vaddr" type="seL4_Word"/>
-			<param dir="in" name="rights" type="RISCV_CapRights"/>
+			<param dir="in" name="rights" type="seL4_CapRights"/>
 			<param dir="in" name="attr" type="seL4_RISCV_VMAttributes"/>
 		</method>
 		<method id="RISCVPageUnmap" name="Unmap"/>
-		<method id="ARMPageClean_Data" name="Clean_Data">
+		<method id="RISCVPageClean_Data" name="Clean_Data">
 		    <param dir="in" name="start_offset" type="seL4_Word"/>
 		    <param dir="in" name="end_offset" type="seL4_Word"/>
 		</method>
