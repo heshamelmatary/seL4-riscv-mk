@@ -27,6 +27,7 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
+//extern char trap_entry[0];
 char riscv_kernel_stack[1024*1024*4] __attribute__ ((aligned(4*1024))) BOOT_DATA;
 pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
@@ -128,14 +129,16 @@ map_kernel_window(void)
     assert((phys << 22) == PADDR_TOP);
 
         /* point to the next last 4MB physical page index */
-    phys++;
-    idx++;
+    //phys++;
+    //idx++;
 
     /* Map last 4MiB Page to page tables - 80400000 */
 
+    uint32_t pt_phys_to_pde = (addrFromPPtr(l2pt)) / 0x1000;
+
     l1pt[idx] = pde_new(
-              VIRT1_TO_IDX(addrFromPPtr(l2pt)),
-              VIRT0_TO_IDX(addrFromPPtr(l2pt)),
+              pt_phys_to_pde >> 10,
+              (0x3ff & pt_phys_to_pde),
               0,  /* sw */
               0,  /* dirty */ 
               0,  /* read */
@@ -152,12 +155,13 @@ map_kernel_window(void)
        PPTR_GLOBALS_PAGE, 
        VMKernelOnly);
 
-    /* map stack page */
-    /*map_kernel_frame(
-       addrFromPPtr(riscv_kernel_stack),
-       PPTR_KERNEL_STACK, 
+    /* Map user<->supervisor system call handler */
+    map_kernel_frame(
+       addrFromPPtr(trap_entry),
+       PPTR_VECTOR_TABLE, 
        VMKernelOnly);
-     */
+     
+    write_csr(stvec, PPTR_VECTOR_TABLE);
     write_csr(sptbr, addrFromPPtr(l1pt));
 }
 

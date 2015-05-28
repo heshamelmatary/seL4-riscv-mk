@@ -475,6 +475,7 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
+    /* Load user stack !!!!! */
     printf("ksCurThread = 0x%x\n", *ksCurThread);
     printf("Jumping to user....\n");
 
