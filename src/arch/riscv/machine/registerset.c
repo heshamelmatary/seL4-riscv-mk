@@ -11,15 +11,15 @@
 #include <arch/machine/registerset.h>
 
 const register_t msgRegisters[] = {
-    X20, X21, X22, X23
+    a2, a3, a4, a5
 };
 
 const register_t frameRegisters[] = {
-    X18, X19, X20, X21, X22, X23, X24
+    a0, a1, a2, a3, a4, a5, a6, a7
 };
 
 const register_t gpRegisters[] = {
-    X18, X19, X20, X21, X22, X23, X24
+    ra, v0, v1, a0, a1, a2, a3, a4, a5, a6, a7, t0, t1, t2, t3, t4
 };
 
 const register_t exceptionMessage[] = {
@@ -27,5 +27,5 @@ const register_t exceptionMessage[] = {
 };
 
 const register_t syscallMessage[] = {
-    X18, X19, X20, X21, X22, X23, X24, X25, SP 
+    a0, a1, a2, a3, a4, a5, a5, a7 
 };

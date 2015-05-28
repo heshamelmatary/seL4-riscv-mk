@@ -476,12 +476,12 @@ init_kernel(
     }
 
     /* Load user stack !!!!! */
-    printf("ksCurThread = 0x%x\n", *ksCurThread);
+    printf("ksCurThread = 0x%x\n", ksCurThread);
     printf("Jumping to user....\n");
 
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
-    asm volatile ("eret");
+   
 }
 

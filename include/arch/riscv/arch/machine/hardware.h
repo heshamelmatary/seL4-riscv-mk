@@ -1,25 +1,17 @@
 #ifndef __ARCH_MACHINE_HARDWARE_H
 #define __ARCH_MACHINE_HARDWARE_H
 
-#include <config.h>
-#include <arch/types.h>
-#include <arch/linker.h>
-
 /* Include cache, MMU related functions */
-
-#ifndef __ASSEMBLER__
-
-#include <arch/types.h>
-
 #define PAGE_BITS 12
 
-#define PPTR_VECTOR_TABLE 0xFFC00000
+#define PPTR_VECTOR_TABLE 0xF0000000
 #define PPTR_GLOBALS_PAGE 0xFFC01000
 
 /* The stack is the very last page of virtual memory. */
-#define PPTR_KERNEL_STACK 0xFFC01000
+#define PPTR_KERNEL_STACK 0xFFFF1000
+#define PPTR_KERNEL_STACK_TOP (PPTR_KERNEL_STACK + 0x1000 - 16)
 
-// page table entry (PTE) fields
+/* page table entry (PTE) fields */
 #define PTE_V     0x001 // Valid
 #define PTE_TYPE  0x01E // Type
 #define PTE_R     0x020 // Referenced
@@ -50,6 +42,13 @@
 
 #define PTE_CREATE(PPN, TYPE) \
   (((PPN) << PTE_PPN_SHIFT) | (TYPE) | PTE_V)
+
+#ifndef __ASSEMBLER__
+
+#include <arch/types.h>
+#include <config.h>
+#include <arch/types.h>
+#include <arch/linker.h>
 
 enum vm_fault_type {
     RISCVLoadAccessFault = 5,

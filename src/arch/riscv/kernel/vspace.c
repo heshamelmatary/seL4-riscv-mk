@@ -28,7 +28,7 @@
 #include <plat/machine/hardware.h>
 
 //extern char trap_entry[0];
-char riscv_kernel_stack[1024*1024*4] __attribute__ ((aligned(4*1024))) BOOT_DATA;
+char riscv_kernel_stack[4096] __attribute__ ((aligned(4096))) BOOT_DATA;
 pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
 
@@ -155,12 +155,18 @@ map_kernel_window(void)
        PPTR_GLOBALS_PAGE, 
        VMKernelOnly);
 
-    /* Map user<->supervisor system call handler */
+    /* map kernel stack */
     map_kernel_frame(
+       addrFromPPtr(riscv_kernel_stack),
+       PPTR_KERNEL_STACK, 
+       VMKernelOnly);
+
+    /* Map user<->supervisor system call handler */
+    /*map_kernel_frame(
        addrFromPPtr(trap_entry),
        PPTR_VECTOR_TABLE, 
        VMKernelOnly);
-     
+    */
     write_csr(stvec, PPTR_VECTOR_TABLE);
     write_csr(sptbr, addrFromPPtr(l1pt));
 }
