@@ -231,6 +231,7 @@ def InitTypes():
         CapType("seL4_DomainSet"),
     ]
 
+<<<<<<< HEAD
     #
     # Arch-specific types.
     #
