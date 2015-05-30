@@ -10,9 +10,12 @@
   -->
 <api>
 	<struct name="seL4_UserContext">
+		<member name="pc"/>
 		<member name="ra"/>
-		<member name="v0"/>
-		<member name="v1"/>
+		<member name="sp"/>
+		<member name="t0"/>
+		<member name="t1"/>
+		<member name="t2"/>
 		<member name="a0"/>
 		<member name="a1"/>
 		<member name="a2"/>
@@ -21,11 +24,10 @@
 		<member name="a5"/>
 		<member name="a6"/>
 		<member name="a7"/>
-		<member name="t0"/>
-		<member name="t1"/>
-		<member name="t2"/>
 		<member name="t3"/>
 		<member name="t4"/>
+		<member name="t5"/>
+		<member name="t6"/>
     </struct>
 
   <interface name="seL4_RISCV_PageDirectory">

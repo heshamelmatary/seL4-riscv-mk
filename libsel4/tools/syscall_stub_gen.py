@@ -211,6 +211,14 @@ types = [
 # Arch-specific types.
 #
 arch_types = {
+
+    "riscv" : [
+        Type("seL4_RISCV_VMAttributes", WORD_SIZE_BITS),
+        CapType("seL4_RISCV_Page"),
+        CapType("seL4_RISCV_PageTable"),
+        CapType("seL4_RISCV_PageDirectory"),
+        StructType("seL4_UserContext", WORD_SIZE_BITS * 18),
+        ],
     "arm" : [
         Type("seL4_ARM_VMAttributes", WORD_SIZE_BITS),
         CapType("seL4_ARM_Page"),
@@ -234,14 +242,6 @@ arch_types = {
         CapType("seL4_IA32_IPI"),
         StructType("seL4_UserContext", WORD_SIZE_BITS * 13),
         StructType("seL4_VCPUContext", WORD_SIZE_BITS * 7),
-        ],
-
-    "riscv" : [
-        Type("seL4_RISCV_VMAttributes", WORD_SIZE_BITS),
-        CapType("seL4_RISCV_Page"),
-        CapType("seL4_RISCV_PageTable"),
-        CapType("seL4_RISCV_PageDirectory"),
-        StructType("seL4_UserContext", WORD_SIZE_BITS * 16),
         ]
     }
 
