@@ -10,20 +10,12 @@
 
 #include <machine/assembler.h>
 
-.code 32
+.global idle_thread
+
 .section .text, "ax"
 
 BEGIN_FUNC(idle_thread)
-    mov r0, #0
+    li a0, 0
 1:
-#if 0
-    /*
-     * Idling is currently broken on the KZM with ARM1136.
-     * This should be SoC-specific. For now, don't idle, just spin.
-     * If anybody cares about power consumption, we can fix it for them.
-     */
-    mcr p15, 0, r0, c7, c10, 4
-    mcr p15, 0, r0, c7, c0, 4
-#endif
-    b 1b
+    j 1b
 END_FUNC(idle_thread)

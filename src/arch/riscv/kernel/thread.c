@@ -18,16 +18,20 @@
 void
 Arch_switchToThread(tcb_t *tcb)
 {
+    setVMRoot(tcb);
+    *riscvKSGlobalsFrame = tcb->tcbIPCBuffer;
 }
 
 BOOT_CODE void
 Arch_configureIdleThread(tcb_t *tcb)
 {
+    setRegister(tcb, ra, (word_t)idleThreadStart);
 }
 
 void
 Arch_switchToIdleThread(void)
 {
+    *riscvKSGlobalsFrame = 0;
 }
 
 void CONST
