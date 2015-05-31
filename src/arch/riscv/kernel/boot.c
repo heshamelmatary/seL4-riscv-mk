@@ -384,6 +384,8 @@ try_init_kernel(
     }
 
     printf("Creating initial thread ... \n");
+
+  printf("bi_frame_vptr = 0x%x\n", bi_frame_vptr);
     /* create the initial thread */
     if (!create_initial_thread(
                 root_cnode_cap,
@@ -503,13 +505,14 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
-    /* Load user stack !!!!! */
-    printf("ksCurThread = 0x%x\n", ksCurThread);
+    printf("ksCurThread = 0x%x\n", *ksCurThread);
     printf("Jumping to user....\n");
 
+    printf("a0 = 0x%x\n", ksCurThread->tcbArch.tcbContext.registers[10]);
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
    
+   // register x asm ("a5") = ndks_boot.bi_frame;
 }
 

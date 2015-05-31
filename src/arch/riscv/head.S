@@ -34,6 +34,12 @@ global_start:
   la sp, (riscv_kernel_stack)
   jal init_kernel
   
+  /* Load initial thread context */
   la tp, ksCurThread
+  lw tp, 0(tp)
+  lw sp, 8(tp)
+  /* Load a0 (bi_frame) */
+  lw a0, 40(tp)
+  
   lw sp, 0(tp)
   eret

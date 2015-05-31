@@ -153,7 +153,7 @@ map_kernel_window(void)
     map_kernel_frame(
        addrFromPPtr(riscvKSGlobalsFrame),
        PPTR_GLOBALS_PAGE, 
-       VMKernelOnly);
+       VMReadOnly);
 
     /* map kernel stack */
     map_kernel_frame(
