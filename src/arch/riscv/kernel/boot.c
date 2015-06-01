@@ -279,7 +279,7 @@ try_init_kernel(
 {
     /* kernel successfully initialized */
 
-    dprintf(1,"Bootstrapping kernel\n");
+    printf("Bootstrapping kernel\n");
 
     cap_t root_cnode_cap;
     cap_t it_pd_cap;
@@ -305,25 +305,25 @@ try_init_kernel(
     it_v_reg.start = ui_v_reg.start;
     it_v_reg.end = bi_frame_vptr + BIT(PAGE_BITS);
 
-    dprintf(1,"Mapping Kernel Window ...\n");
+    printf("Mapping Kernel Window ...\n");
     map_kernel_window();
 
-    dprintf(1,"Initializing CPU ... \n");
+    printf("Initializing CPU ... \n");
     /* initialise the CPU */
     init_cpu();
 
-    dprintf(1,"Initializing Free Memory ... \n");
+    printf("Initializing Free Memory ... \n");
     /* make the free memory available to alloc_region() */
     init_freemem(ui_reg);
 
-    dprintf(1,"Creating The Root CNode ... \n");
+    printf("Creating The Root CNode ... \n");
   /* create the root cnode */
     root_cnode_cap = create_root_cnode();
     if (cap_get_capType(root_cnode_cap) == cap_null_cap) {
         return false;
     }
 
-    dprintf(1,"Creating Domain Cap ... \n");
+    printf("Creating Domain Cap ... \n");
   /* create the cap for managing thread domains */
     create_domain_cap(root_cnode_cap);
 
@@ -332,14 +332,14 @@ try_init_kernel(
         return false;
     }
   
-    dprintf(1,"Allocate Boot Frame ... \n");
+    printf("Allocate Boot Frame ... \n");
     /* create the bootinfo frame */
     bi_frame_pptr = allocate_bi_frame(0, 1, ipcbuf_vptr);
     if (!bi_frame_pptr) {
         return false;
     }
 
-    dprintf(1,"Construct Initial Address Space ... \n");
+    printf("Construct Initial Address Space ... \n");
     /* Construct an initial address space with enough virtual addresses
      * to cover the user image + ipc buffer and bootinfo frames */
     it_pd_cap = create_it_address_space(root_cnode_cap, it_v_reg);
@@ -348,7 +348,7 @@ try_init_kernel(
         return false;
     }
 
-    dprintf(1,"Create and map bootinfo frame cap ... \n");
+    printf("Create and map bootinfo frame cap ... \n");
     /* Create and map bootinfo frame cap */
     create_bi_frame_cap(
         root_cnode_cap,
@@ -363,7 +363,7 @@ try_init_kernel(
         return false;
     }
 
-    dprintf(1,"Creating userland image frames \n");
+    printf("Creating userland image frames \n");
     /* create all userland image frames */
     create_frames_ret =
         create_frames_of_region(
@@ -383,7 +383,7 @@ try_init_kernel(
         return false;
     }
 
-    dprintf(1,"Creating initial thread ... \n");
+    printf("Creating initial thread ... \n");
 
     /* create the initial thread */
     if (!create_initial_thread(
@@ -397,9 +397,9 @@ try_init_kernel(
         return false;
     }
 
-    dprintf(1,"INITIAL: ksCurThread = 0x%x\n", ksCurThread);
+    printf("INITIAL: ksCurThread = 0x%x\n", ksCurThread);
 
-    dprintf(1,"Creating untyped memory... \n");
+    printf("Creating untyped memory... \n");
     /* convert the remaining free memory into UT objects and provide the caps */
     if (!create_untypeds(
                 root_cnode_cap,
@@ -461,11 +461,11 @@ init_kernel(
 )
 {
 
-  dprintf(1, "********* Platform Information ********** \n");
+  printf( "********* Platform Information ********** \n");
   
   init_plat();
     
-  dprintf(1,"Initializing platform ...... \n");
+  printf("Initializing platform ...... \n");
 
     bool_t result;
 
@@ -478,14 +478,13 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
-    dprintf(1,"ksCurThread = 0x%x\n", *ksCurThread);
-    dprintf(1,"Jumping to user....\n");
+    printf("ksCurThread = 0x%x\n", *ksCurThread);
+    printf("Jumping to user....\n");
 
-    dprintf(1,"a0 = 0x%x\n", ksCurThread->tcbArch.tcbContext.registers[10]);
+    /* FIXME: Enable floating point unit */
+    set_csr(sstatus, 0x00001000);
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
-   
-   // register x asm ("a5") = ndks_boot.bi_frame;
 }
 
