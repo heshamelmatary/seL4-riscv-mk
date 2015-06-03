@@ -1,8 +1,6 @@
 #include <config.h>
 #include <machine/assembler.h>
 
-#include <arch/machine/hardware.h>
-
 # define LREG lw
 # define SREG sw
 
@@ -20,6 +18,11 @@ _start:
 
 .section .vector, "ax"
 .balign 4096
+
+#include <arch/api/syscall.h>
+#include <arch/machine/hardware.h>
+
+#include <arch/machine/registerset.h>
 
 trap_entry:
   la tp, ksCurThread
@@ -62,12 +65,24 @@ trap_entry:
   csrr s2,  sepc
   addi s2, s2, 4
 
+  /* Move systemcall number to a0 */
   mv a0, a7
 
+  /* Check that syscall number is in range */
+  li  s0, SYSCALL_MIN
+  blt a0, s0, unknownsyscall
+  nop
+  la  s0, handleSyscall
+  jalr s0
+  nop
+  j   ret_user
+
+unknownsyscall:
   /* FIXME */
   la s0, handleUnknownSyscall
   jalr s0
 
+ret_user:
   csrw sepc, s2
   
   LREG x1, 4(tp)
