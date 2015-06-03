@@ -486,5 +486,6 @@ init_kernel(
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
+    write_csr(sscratch, ksCurThread);
 }
 

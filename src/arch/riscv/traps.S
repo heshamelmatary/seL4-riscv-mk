@@ -25,8 +25,11 @@ _start:
 #include <arch/machine/registerset.h>
 
 trap_entry:
-  la tp, ksCurThread
-  lw tp, 0(tp)
+
+  addi sp, sp, -8
+
+  sw   tp, 0(sp)
+  csrr tp, sscratch 
 
   SREG x1, 4(tp)
   SREG x2, 8(tp)
@@ -116,5 +119,8 @@ ret_user:
   LREG x29, 116(tp)
   LREG x30, 120(tp)
   LREG x31, 124(tp)
+
+  lw   tp, 0(sp)
+  addi sp, sp, 8
 
   eret
