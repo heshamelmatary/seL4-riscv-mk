@@ -240,6 +240,30 @@ copyGlobalMappings(pde_t *newPD)
 word_t * PURE
 lookupIPCBuffer(bool_t isReceiver, tcb_t *thread)
 {
+    word_t w_bufferPtr;
+    cap_t bufferCap;
+    vm_rights_t vm_rights;
+
+    w_bufferPtr = thread->tcbIPCBuffer;
+    bufferCap = TCB_PTR_CTE_PTR(thread, tcbBuffer)->cap;
+
+    if (unlikely(cap_get_capType(bufferCap) != cap_frame_cap &&
+                 cap_get_capType(bufferCap) != cap_frame_cap)) {
+        return NULL;
+    }
+
+    vm_rights = cap_frame_cap_get_capFVMRights(bufferCap);
+    if (likely(vm_rights == VMReadWrite ||
+               (!isReceiver && vm_rights == VMReadOnly))) {
+        word_t basePtr;
+        unsigned int pageBits;
+
+        basePtr = cap_frame_cap_get_capFBasePtr(bufferCap);
+        pageBits = pageBitsForSize(cap_frame_cap_get_capFSize(bufferCap));
+        return (word_t *)(basePtr + (w_bufferPtr & MASK(pageBits)));
+    } else {
+        return NULL;
+    }
 }
 
 /*findPDForASID_ret_t
