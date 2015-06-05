@@ -79,6 +79,7 @@ static inline void
 seL4_SetCap(int i, seL4_CPtr cptr)
 {
     seL4_GetIPCBuffer()->caps_or_badges[i] = (seL4_Word)cptr;
+    //asm volatile ("sw %0, %1" :: "r"(cptr), "r"(i*4) : "memory");
 }
 
 static inline void
