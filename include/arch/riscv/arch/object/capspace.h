@@ -28,7 +28,6 @@ cap_get_capSpaceType(cap_t cap)
 
     ctag = cap_get_capType(cap);
 
-    printf("cap = 0x%x\n", ctag);
     switch (ctag) {
     case cap_endpoint_cap:
     case cap_async_endpoint_cap:
