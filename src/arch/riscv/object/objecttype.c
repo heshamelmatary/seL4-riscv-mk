@@ -28,7 +28,7 @@ Arch_deriveCap(cte_t *slot, cap_t cap)
         return ret;
 
     case cap_page_directory_cap:
-        //ret.cap = cap_page_directory_cap_set_capPDMappedObject(cap, 0);
+        ret.cap = cap_page_directory_cap_set_capPDBasePtr(cap, 0); 
         ret.status = EXCEPTION_NONE;
         return ret;
 
@@ -113,6 +113,7 @@ Arch_decodeInvocation(word_t label, unsigned int length, cptr_t cptr,
     switch (cap_get_capType(cap)) {
     case cap_page_directory_cap:
     case cap_page_table_cap:
+    cap_frame_cap:
     		return decodeRISCVMMUInvocation(label, length, cptr, slot, cap, extraCaps, buffer);
     default: printf("Not page_cap");
     }
@@ -127,4 +128,10 @@ Arch_prepareThreadDelete(tcb_t *thread)
 bool_t
 Arch_isFrameType(word_t t)
 {
+    switch (t) {
+    case seL4_RISCV_Page:
+        return true;
+    default:
+        return false;
+    }
 }
