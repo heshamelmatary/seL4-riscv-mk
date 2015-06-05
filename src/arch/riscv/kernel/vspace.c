@@ -351,16 +351,47 @@ setVMRootForFlush(pde_t* pd, asid_t asid)
 bool_t CONST
 isValidVTableRoot(cap_t cap)
 {
+    return cap_get_capType(cap) == cap_page_directory_cap;
 }
 
 exception_t
 checkValidIPCBuffer(vptr_t vptr, cap_t cap)
 {
+    if (unlikely(cap_get_capType(cap) != cap_frame_cap)) {
+        userError("Requested IPC Buffer is not a frame cap."); 
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    if (unlikely(vptr & MASK(9))) {
+        userError("Requested IPC Buffer location 0x%x is not aligned.",
+                  (int)vptr);
+        current_syscall_error.type = seL4_AlignmentError;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    return EXCEPTION_NONE;
 }
 
 vm_rights_t CONST
 maskVMRights(vm_rights_t vm_rights, cap_rights_t cap_rights_mask)
 {
+    if (vm_rights == VMNoAccess) {
+        return VMNoAccess;
+    }
+    if (vm_rights == VMReadOnly &&
+            cap_rights_get_capAllowRead(cap_rights_mask)) {
+        return VMReadOnly;
+    }
+    if (vm_rights == VMReadWrite &&
+            cap_rights_get_capAllowRead(cap_rights_mask)) {
+        if (!cap_rights_get_capAllowWrite(cap_rights_mask)) {
+            return VMReadOnly;
+        } else {
+            return VMReadWrite;
+        }
+    }
+    return VMKernelOnly;
 }
 
 /*static void
