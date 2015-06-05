@@ -13,7 +13,7 @@
 
 typedef enum _object {
     seL4_RISCV_4K = seL4_NonArchObjectTypeCount,
-    seL4_RISCV_LargePage,
+    //seL4_RISCV_LargePage,
     seL4_RISCV_PageTableObject,
     seL4_RISCV_PageDirectoryObject,
     seL4_ObjectTypeCount
@@ -21,6 +21,6 @@ typedef enum _object {
 
 typedef uint32_t object_t;
 
-#define seL4_RISCV_4M seL4_RISCV_LargePage
+//#define seL4_RISCV_4M seL4_RISCV_LargePage
 #endif /* __ARCH_OBJECTTYPE_H */
 
