@@ -273,7 +273,7 @@ seL4_Call(seL4_CPtr dest, seL4_MessageInfo_t msgInfo)
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysCall;
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info) : "r"(msg0), "r"(msg1), "r"(msg2), \
     "r"(msg3), "r"(scno));
 
     /* Write out the data back to memory. */
@@ -315,7 +315,7 @@ seL4_CallWithMRs(seL4_CPtr dest, seL4_MessageInfo_t msgInfo,
     }
 
     /* Perform the system call. */
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info): "r"(msg0), "r"(msg1), "r"(msg2), \
     "r"(msg3), "r"(scno));
 
     /* Write out the data back to memory. */
