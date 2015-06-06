@@ -274,21 +274,54 @@ findPDForASID(asid_t asid)
 lookupPTSlot_ret_t
 lookupPTSlot(pde_t *pd, vptr_t vptr)
 {
+    lookupPTSlot_ret_t ret;
+    pde_t *pdSlot;
+
+    pdSlot = pd + VIRT1_TO_IDX(vptr);
+
+    if ( *((uint32_t *) pdSlot) == 0 ) {
+        current_lookup_fault = lookup_fault_missing_capability_new(20);
+
+        ret.pt = NULL;
+        ret.ptIndex = 0;
+        ret.status = EXCEPTION_LOOKUP_FAULT;
+        return ret;
+    } else {
+        pte_t *pt;
+        unsigned int ptIndex;
+        uint32_t ppn1, ppn0, pt_resolve;
+
+        ppn1 = pde_get_ppn1(*pdSlot);
+        ppn0 = pde_get_ppn0(*pdSlot);
+        pt_resolve = ppn1 << 10 | ppn0;
+        pt_resolve = pt_resolve * 0x1000;
+
+        pte_t *pt_ptr = ptrFromPAddr(pt_resolve);
+
+        ptIndex = VIRT0_TO_IDX(vptr);
+        ret.pt = pt_ptr;
+        ret.ptIndex = ptIndex;
+        ret.status = EXCEPTION_NONE;
+        return ret;
+    }
 }
 
 static pte_t *
 lookupPTSlot_nofail(pte_t *pt, vptr_t vptr)
 {
+  printf("Hit unimplemented lookupPTSlot_nofail \n");
 }
 
 pde_t * CONST
 lookupPDSlot(pde_t *pd, vptr_t vptr)
 {
+  printf("Hit unimplemented lookupPDSlot \n");
 }
 
 exception_t
 handleVMFault(tcb_t *thread, vm_fault_type_t vm_faultType)
 {
+    printf("Hit unimplemented handleVMFault \n");
 }
 
 /*static void
@@ -314,6 +347,7 @@ deleteASID(asid_t asid, pde_t* pd)
 pde_t *
 pageTableMapped(asid_t asid, vptr_t vaddr, pte_t* pt)
 {
+    printf("Hit unimplemented pageTableMapped \n");
 }
 
 void unmapPageTable(pde_t* pd, uint32_t pdIndex)
@@ -331,11 +365,13 @@ void unmapPageTable(pde_t* pd, uint32_t pdIndex)
 
 static pte_t pte_pte_invalid_new(void)
 {
+    printf("Hit unimplemented pte_pte_invalid_new \n");
 }
 
 void
 unmapPage(vm_page_size_t page_size, asid_t asid, vptr_t vptr, void *pptr)
 {
+    printf("Hit unimplemented unmapPage \n");
 }
 
 void
@@ -346,6 +382,7 @@ setVMRoot(tcb_t *tcb)
 static bool_t
 setVMRootForFlush(pde_t* pd, asid_t asid)
 {
+    printf("Hit unimplemented setVMRootForFlush \n");
 }
 
 bool_t CONST
@@ -423,15 +460,18 @@ setCurrentASID(asid_t asid)
 
 void flushPage(vm_page_size_t page_size, pde_t* pd, word_t vptr)
 {
+    printf("Hit unimplemented flushPage \n");
 }
 
  void flushTable(pde_t* pd, word_t vptr, pte_t* pt)
 {
+    printf("Hit unimplemented flushTable \n");
 }
 
 void
 flushSpace(asid_t asid)
 {
+    printf("Hit unimplemented flushSpace \n");
 }
 
 void
@@ -442,9 +482,29 @@ invalidateTLBByASID(asid_t asid)
 /* The rest of the file implements the RISCV object invocations */
 
 static pte_t CONST
-makeUserPTE(vm_page_size_t page_size, paddr_t paddr,
-            bool_t cacheable, bool_t nonexecutable, vm_rights_t vm_rights)
+makeUserPTE(vm_page_size_t page_size, paddr_t paddr, vm_rights_t vm_rights)
 {
+    pte_t pte; 
+
+    switch (page_size) {
+    case RISCVNormalPage: {
+ 
+         pte = pte_new(
+                  VIRT1_TO_IDX((uint32_t)addrFromPPtr(paddr)), /* ppn1 */
+                  VIRT0_TO_IDX((uint32_t)addrFromPPtr(paddr)), /* ppn0 */
+                  0, /* sw */
+                  0, /* dirty */
+                  0, /* read */
+                  APFromVMRights(vm_rights), /* type */
+                  1 /* valid */
+                );
+        break;
+    }
+    default:
+        fail("Invalid PTE frame type");
+    }    
+
+    return pte;
 }
 
 static pde_t CONST
@@ -452,11 +512,13 @@ makeUserPDE(vm_page_size_t page_size, paddr_t paddr, bool_t parity,
             bool_t cacheable, bool_t nonexecutable, word_t domain,
             vm_rights_t vm_rights)
 {
+    printf("Hit unimplemented makeUserPDE \n");
 }
 
 static inline bool_t CONST
 checkVPAlignment(vm_page_size_t sz, word_t w)
 {
+    return (w & MASK(pageBitsForSize(sz))) == 0;
 }
 
 static exception_t
@@ -464,60 +526,77 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
                              cte_t *cte, cap_t cap, extra_caps_t extraCaps,
                              word_t *buffer)
 {
-    word_t          vaddr;
+    word_t vaddr, pdIndex;
     vm_attributes_t attr;
-    cap_t           vspaceCap;
-    void*           vspace;
-    pde_t           pde;
-    pde_t *         pd, *pdSlot;
-    paddr_t         paddr;
+    cap_t pdCap;
+    pde_t *pd, *pdSlot;
+    pde_t pde;
+    paddr_t paddr;
 
     if (label == RISCVPageTableUnmap) {
         setThreadState(ksCurThread, ThreadState_Restart);
-
-        pd = PDE_PTR(cap_page_table_cap_get_capPTMappedObject(cap));
-        if (pd) {
-            pte_t *pt = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap));
-            uint32_t pdIndex = cap_page_table_cap_get_capPTMappedIndex(cap);
-            unmapPageTable(pd, pdIndex);
-            flushTable(pd, pdIndex, pt);
-            clearMemory((void *)pt, cap_get_capSizeBits(cap));
-        }
-        cdtUpdate(cte, cap_page_table_cap_set_capPTMappedObject(cap, 0));
-
-        return EXCEPTION_NONE;
+        return performPageTableInvocationUnmap (cap, cte);
     }
-
-    if (label != RISCVPageTableMap ) {
-        userError("RISCVPageTable: Illegal operation.");
+    
+    if (unlikely(label != RISCVPageTableMap)) {
         current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
-
-    vaddr = getSyscallArg(0, buffer) & (~MASK(PT_BITS + PAGE_BITS));
+    
+    if (unlikely(length < 2 || extraCaps.excaprefs[0] == NULL)) {
+        current_syscall_error.type = seL4_TruncatedMessage;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+    
+    vaddr = getSyscallArg(0, buffer);
     attr = vmAttributesFromWord(getSyscallArg(1, buffer));
-    vspaceCap = extraCaps.excaprefs[0]->cap;
+    pdCap = extraCaps.excaprefs[0]->cap;
+    
+    if (unlikely(cap_get_capType(pdCap) != cap_page_directory_cap)) {
+        current_syscall_error.type = seL4_InvalidCapability;
+        current_syscall_error.invalidCapNumber = 1;
 
-    vspace = (void*)pptr_of_cap(vspaceCap);
-    pdSlot = (lookupPDSlot(vspace, vaddr));
+        return EXCEPTION_SYSCALL_ERROR;
+    }
 
-    paddr = pptr_to_paddr(PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap)));
+    pd = PDE_PTR(cap_page_directory_cap_get_capPDBasePtr(pdCap));
+
+    if (unlikely(vaddr >= kernelBase)) {
+        current_syscall_error.type = seL4_InvalidArgument;
+        current_syscall_error.invalidArgumentNumber = 0;
+
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    pdIndex = vaddr >> 22;
+
+    pdSlot = &pd[pdIndex];
+    if (unlikely( *((uint32_t *) pdSlot) != 0) ) {
+        current_syscall_error.type = seL4_DeleteFirst;
+
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    paddr = addrFromPPtr(
+                PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap)));
+
+    uint32_t pt_phys_to_pde = paddr / 0x1000;
 
     pde = pde_new(
-                      0,  /* ppn1 */
-                      0,  /* ppn0 */
-                      0,  /* sw */
-                      0,  /* dirty */
-                      0,  /* read */
-                      0,  /* type */
-                      0  /* valid */
-                  );
+                      pt_phys_to_pde >> 10, /* address */
+                      (0x3ff & pt_phys_to_pde), /* address */
+                      0, /* sw */
+                      0, /* dirty */
+                      0, /* read */
+                      RISCV_PTE_TYPE_TABLE, /* type */
+                      1 /* valid */
+                      );
 
-    //cap = cap_page_table_cap_set_capPTMappedObject(cap, PD_REF(pdSlot.pd));
-    //cap = cap_page_table_cap_set_capPTMappedIndex(cap, pdSlot.pdIndex);
+    cap = cap_page_table_cap_set_capPTMappedObject(cap, PD_REF(pd));
+    cap = cap_page_table_cap_set_capPTMappedIndex(cap, pdIndex);
 
-    cdtUpdate(cte, cap);
-    *pdSlot = pde;
+    setThreadState(ksCurThread, ThreadState_Restart);
+    return performPageTableInvocationMap(cap, cte, pde, pdSlot);
     
 }
 
@@ -540,6 +619,42 @@ createSafeMappingEntries_PTE
 (paddr_t base, word_t vaddr, vm_page_size_t frameSize,
  vm_rights_t vmRights, vm_attributes_t attr, pde_t *pd)
 {
+    create_mappings_pte_return_t ret;
+    lookupPTSlot_ret_t lu_ret;
+    unsigned int i;
+
+    switch (frameSize) {
+
+    case RISCVNormalPage:
+
+        ret.pte_entries.pt = NULL; /* to avoid uninitialised warning */
+        ret.pte_entries.start = 0;
+        ret.pte_entries.length = 1;
+
+        ret.pte = makeUserPTE(RISCVNormalPage, base, vmRights);
+
+        lu_ret = lookupPTSlot(pd, vaddr);
+        if (unlikely(lu_ret.status != EXCEPTION_NONE)) {
+            current_syscall_error.type =
+                seL4_FailedLookup;
+            current_syscall_error.failedLookupWasSource =
+                false;
+            ret.status = EXCEPTION_SYSCALL_ERROR;
+            /* current_lookup_fault will have been set by
+             * lookupPTSlot */
+            return ret;
+        }
+
+        ret.pte_entries.pt = lu_ret.pt;
+        ret.pte_entries.start = lu_ret.ptIndex;
+
+        ret.status = EXCEPTION_NONE;
+        return ret; 
+
+    default:
+        fail("Invalid or unexpected ARM page type.");
+
+    }
 }
 
 
@@ -549,6 +664,7 @@ createSafeMappingEntries_PDE
 (paddr_t base, word_t vaddr, vm_page_size_t frameSize,
  vm_rights_t vmRights, vm_attributes_t attr, pde_t *pd)
 {
+    printf("Hit unimplemented createSafeMappingEntries_PDE \n");
 }
 
 static exception_t
@@ -556,6 +672,121 @@ decodeRISCVFrameInvocation(word_t label, unsigned int length,
                          cte_t *cte, cap_t cap, extra_caps_t extraCaps,
                          word_t *buffer)
 {
+    switch (label) {
+    case RISCVPageMap: {
+
+        word_t vaddr, vtop, w_rightsMask;
+        paddr_t capFBasePtr;
+        cap_t pdCap;
+        pde_t *pd;
+        asid_t asid;
+        vm_rights_t capVMRights, vmRights;
+        vm_page_size_t frameSize;
+        vm_attributes_t attr;
+
+        if (unlikely(length < 3 || extraCaps.excaprefs[0] == NULL)) {
+            current_syscall_error.type =
+                seL4_TruncatedMessage;
+
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+
+        vaddr = getSyscallArg(0, buffer);
+
+        w_rightsMask = getSyscallArg(1, buffer);
+        attr = vmAttributesFromWord(getSyscallArg(2, buffer));
+        pdCap = extraCaps.excaprefs[0]->cap;
+
+        frameSize = cap_frame_cap_get_capFSize(cap);
+        capVMRights = cap_frame_cap_get_capFVMRights(cap);
+
+        if (unlikely(cap_frame_cap_get_capFMappedObject(cap))) {
+            current_syscall_error.type =
+                seL4_InvalidCapability;
+            current_syscall_error.invalidCapNumber = 0;
+
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+
+        if (unlikely(cap_get_capType(pdCap) != cap_page_directory_cap)) {
+            current_syscall_error.type =
+                seL4_InvalidCapability;
+            current_syscall_error.invalidCapNumber = 1;
+
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+        pd = PDE_PTR(cap_page_directory_cap_get_capPDBasePtr(
+                         pdCap));
+        /*asid = cap_page_directory_cap_get_capPDMappedASID(pdCap);
+
+        {
+            findPDForASID_ret_t find_ret;
+
+            find_ret = findPDForASID(asid);
+            if (unlikely(find_ret.status != EXCEPTION_NONE)) {
+                userError("ARMPageMap: No PD for ASID");
+                current_syscall_error.type =
+                    seL4_FailedLookup;
+                current_syscall_error.failedLookupWasSource =
+                    false;
+
+                return EXCEPTION_SYSCALL_ERROR;
+            }
+
+            if (unlikely(find_ret.pd != pd)) {
+                current_syscall_error.type =
+                    seL4_InvalidCapability;
+                current_syscall_error.invalidCapNumber = 1;
+
+                return EXCEPTION_SYSCALL_ERROR;
+            }
+        }*/
+
+        vtop = vaddr + BIT(pageBitsForSize(frameSize)) - 1;
+
+        if (unlikely(vtop >= kernelBase)) {
+            current_syscall_error.type =
+                seL4_InvalidArgument;
+            current_syscall_error.invalidArgumentNumber = 0;
+
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+
+        vmRights =
+            maskVMRights(capVMRights, rightsFromWord(w_rightsMask));
+
+        if (unlikely(!checkVPAlignment(frameSize, vaddr))) {
+            current_syscall_error.type =
+                seL4_AlignmentError;
+
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+
+        capFBasePtr = addrFromPPtr((void *)
+                                   cap_frame_cap_get_capFBasePtr(cap));
+
+        asid = 0;
+        //cap = cap_frame_cap_set_capFMappedAddress(cap, asid, vaddr);
+        if (frameSize == RISCVNormalPage) {
+            create_mappings_pte_return_t map_ret;
+            map_ret = createSafeMappingEntries_PTE(capFBasePtr, vaddr,
+                                                   frameSize, vmRights,
+                                                   attr, pd);
+
+            if (unlikely(map_ret.status != EXCEPTION_NONE)) {
+                return map_ret.status;
+            }
+
+            setThreadState(ksCurThread, ThreadState_Restart);
+            return performPageInvocationMapPTE(cap, cte,
+                                               map_ret.pte,
+                                               map_ret.pte_entries);
+        } else {
+            printf("error: Not a valid page size \n");
+        }
+     }
+  }
+    
 }
 
 static const resolve_ret_t default_resolve_ret_t;
@@ -563,6 +794,7 @@ static const resolve_ret_t default_resolve_ret_t;
 static resolve_ret_t
 resolveVAddr(pde_t *pd, vptr_t vaddr)
 {
+    printf("Hit unimplemented resolveVAddr \n");
 }
 
 static inline vptr_t
@@ -582,6 +814,7 @@ decodeRISCVPageDirectoryInvocation
     word_t* buffer
 )
 {
+    printf("Hit unimplemented decodeRISCVPageDirectoryInvocation \n");
     current_syscall_error.type = seL4_IllegalOperation;
     return EXCEPTION_SYSCALL_ERROR;
 }
@@ -608,49 +841,77 @@ decodeRISCVMMUInvocation(word_t label, unsigned int length, cptr_t cptr,
 }
 
 exception_t
+performPageTableInvocationMap(cap_t cap, cte_t *ctSlot,
+                              pde_t pde, pde_t *pdSlot)
+{
+    ctSlot->cap = cap;
+    *pdSlot = pde;
+
+    return EXCEPTION_NONE;
+}
+
+exception_t
 performPageTableInvocationUnmap(cap_t cap, cte_t *ctSlot)
 {
+    printf("Hit unimplemented performPageTableInvocationUnmap \n");
 }
 
 static exception_t
 performPageGetAddress(void *vbase_ptr)
 {
+    printf("Hit unimplemented performPageGetAddress \n");
 }
 
 static bool_t PURE
 pteCheckIfMapped(pte_t *pte)
 {
+    printf("Hit unimplemented pteCheckIfMapped \n");
 }
 
 static bool_t PURE
 pdeCheckIfMapped(pde_t *pde)
 {
+    printf("Hit unimplemented pdeCheckIfMapped \n");
 }
 
 exception_t performPageInvocationMapPTE(cap_t cap, cte_t *ctSlot,
                                         pte_t pte, pte_range_t pte_entries)
 {
+    unsigned int i;
+
+    cap = cap_frame_cap_set_capFMappedObject(cap, PT_REF(pte_entries.pt));
+    cap = cap_frame_cap_set_capFMappedIndex(cap, pte_entries.start);
+    cdtUpdate(ctSlot, cap);
+
+    for (i = 0; i < pte_entries.length; i++) {
+        pte_entries.pt[pte_entries.start + i] = pte;
+    }
+    return EXCEPTION_NONE;
 }
 exception_t performPageInvocationMapPDE(cap_t cap, cte_t *ctSlot,
                                         pde_t pde, pde_range_t pde_entries)
 {
+    printf("Hit unimplemented performPageInvocationMapPDE \n");
 }
 
 exception_t
 performPageInvocationRemapPTE(asid_t asid, pte_t pte, pte_range_t pte_entries)
 {
+    printf("Hit unimplemented performPageInvocationRemapPTE \n");
     return EXCEPTION_NONE;
 }
 
 exception_t
 performPageInvocationRemapPDE(asid_t asid, pde_t pde, pde_range_t pde_entries)
 {
+    printf("Hit unimplemented performPageInvocationRemapPDE \n");
     return EXCEPTION_NONE;
 }
 
 exception_t
 performPageInvocationUnmap(cap_t cap, cte_t *ctSlot)
 {
+    printf("Hit unimplemented performPageInvocationUnmap \n");
     return EXCEPTION_NONE;
 }
 
@@ -658,6 +919,7 @@ exception_t
 performASIDControlInvocation(void *frame, cte_t *slot,
                              cte_t *parent, asid_t asid_base)
 {
+    printf("Hit unimplemented performASIDControlInvocation \n");
     return EXCEPTION_NONE;
 }
 
@@ -671,12 +933,14 @@ performASIDPoolInvocation(asid_t asid, asid_pool_t *poolPtr,
 void
 doFlush(int label, vptr_t start, vptr_t end, paddr_t pstart)
 {
+    printf("Hit unimplemented doFlush \n");
 }
 
 static exception_t
 performPageFlush(int label, pde_t *pd, asid_t asid, vptr_t start,
                  vptr_t end, paddr_t pstart)
 {
+    printf("Hit unimplemented performPageFlush \n");
     return EXCEPTION_NONE;
 }
 
@@ -684,6 +948,7 @@ static exception_t
 performPDFlush(int label, pde_t *pd, asid_t asid, vptr_t start,
                vptr_t end, paddr_t pstart)
 {
+    printf("Hit unimplemented performPDFlush \n");
     return EXCEPTION_NONE;
 }
 
@@ -694,10 +959,12 @@ void kernelDataAbort(word_t pc) VISIBLE;
 void
 kernelPrefetchAbort(word_t pc)
 {
+    printf("Hit unimplemented kernelPrefetchAbort \n");
 }
 
 void
 kernelDataAbort(word_t pc)
 {
+    printf("Hit unimplemented kernelDataAbort \n");
 }
 #endif
