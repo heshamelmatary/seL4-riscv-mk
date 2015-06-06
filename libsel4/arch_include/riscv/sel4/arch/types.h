@@ -18,7 +18,7 @@
 #define seL4_PageBits        12
 #define seL4_4MBits          22
 #define seL4_SlotBits         4
-#define seL4_TCBBits         10
+#define seL4_TCBBits          9 
 #define seL4_EndpointBits     4
 #define seL4_PageTableBits   12
 #define seL4_PageDirBits     12
