@@ -90,7 +90,6 @@ Arch_hasRecycleRights(cap_t cap)
 bool_t CONST
 Arch_sameRegionAs(cap_t cap_a, cap_t cap_b)
 {
-    printf("Test keda \n");
     switch (cap_get_capType(cap_a)) {
     case cap_frame_cap:
         if (cap_get_capType(cap_b) == cap_frame_cap) {
@@ -200,7 +199,7 @@ Arch_decodeInvocation(word_t label, unsigned int length, cptr_t cptr,
     switch (cap_get_capType(cap)) {
     case cap_page_directory_cap:
     case cap_page_table_cap:
-    cap_frame_cap:
+    case cap_frame_cap:
     		return decodeRISCVMMUInvocation(label, length, cptr, slot, cap, extraCaps, buffer);
     default: printf("Not page_cap");
     }
