@@ -90,6 +90,7 @@ Arch_hasRecycleRights(cap_t cap)
 bool_t CONST
 Arch_sameRegionAs(cap_t cap_a, cap_t cap_b)
 {
+    printf("Test keda \n");
     switch (cap_get_capType(cap_a)) {
     case cap_frame_cap:
         if (cap_get_capType(cap_b) == cap_frame_cap) {
@@ -138,7 +139,7 @@ word_t
 Arch_getObjectSize(word_t t)
 {
     switch (t) {
-    case seL4_RISCV_Page:
+    case seL4_RISCV_PageObject:
     case seL4_RISCV_PageTableObject:
     case seL4_RISCV_PageDirectoryObject:
         return RISCVNormalPageBits;
@@ -152,7 +153,7 @@ cap_t Arch_createObject(object_t t, void *regionBase, int userSize, bool_t
 deviceMemory)
 {
     switch (t) {
-    case seL4_RISCV_Page:
+    case seL4_RISCV_PageObject:
         if (!deviceMemory) {
             memzero(regionBase, 1 << RISCVNormalPageBits);
             /** AUXUPD: "(True, ptr_retyps 1
@@ -162,7 +163,7 @@ deviceMemory)
                                                 (unat ARMSmallPageBits))" */
         }
         return cap_frame_cap_new(
-                   0 , 0, seL4_RISCV_Page, VMReadWrite, 0,
+                   0 , 0, RISCVNormalPage, VMReadWrite, 0,
                    (word_t)regionBase);
 
     case seL4_RISCV_PageTableObject:
@@ -215,7 +216,7 @@ bool_t
 Arch_isFrameType(word_t t)
 {
     switch (t) {
-    case seL4_RISCV_Page:
+    case seL4_RISCV_PageObject:
         return true;
     default:
         return false;
