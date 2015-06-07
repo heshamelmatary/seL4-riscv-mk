@@ -166,7 +166,7 @@ map_kernel_window(void)
        VMKernelOnly);
     */
     write_csr(stvec, PPTR_VECTOR_TABLE);
-    write_csr(sptbr, addrFromPPtr(l1pt));
+    setCurrentPD(addrFromPPtr(l1pt));
 }
 
 BOOT_CODE void
@@ -377,6 +377,29 @@ unmapPage(vm_page_size_t page_size, asid_t asid, vptr_t vptr, void *pptr)
 void
 setVMRoot(tcb_t *tcb)
 {
+    cap_t threadRoot;
+    asid_t asid;
+    pde_t *pd;
+    //findPDForASID_ret_t  find_ret;
+    printf("setVMRoot \n");
+    threadRoot = TCB_PTR_CTE_PTR(tcb, tcbVTable)->cap;
+
+    printf("threadRoot = 0x%x\n", threadRoot);
+    if (cap_get_capType(threadRoot) != cap_page_directory_cap) {
+        setCurrentPD(addrFromPPtr(l1pt));
+        return;
+    }
+
+    pd = PDE_PTR(cap_page_directory_cap_get_capPDBasePtr(threadRoot));
+    printf("pd = 0x%x\n", pd);
+    //asid = cap_page_directory_cap_get_capPDMappedASID(threadRoot);
+    /*find_ret = findPDForASID(asid);
+    if (unlikely(find_ret.status != EXCEPTION_NONE || find_ret.pd != pd)) {
+        setCurrentPD(addrFromPPtr(l1pt));
+        return;
+    }*/
+
+    //armv_contextSwitch(pd, asid);
 }
 
 static bool_t
@@ -571,6 +594,7 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
     pdIndex = vaddr >> 22;
 
     pdSlot = &pd[pdIndex];
+
     if (unlikely( *((uint32_t *) pdSlot) != 0) ) {
         current_syscall_error.type = seL4_DeleteFirst;
 

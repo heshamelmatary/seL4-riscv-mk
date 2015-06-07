@@ -996,6 +996,15 @@ static inline void clearMemory(void* ptr, unsigned int bits)
     /* no cleaning of caches necessary on IA-32 */
 }
 
+/** MODIFIES: [*] */
+//void setHardwareASID(hw_asid_t hw_asid);
+
+/* Address space control */
+/** MODIFIES: [*] */
+static inline void setCurrentPD(paddr_t addr)
+{
+    write_csr(sptbr, addr);
+}
 
 #endif // __ASSEMBLER__
 #endif

@@ -144,7 +144,9 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
         slot_pos_before, slot_pos_after
     };
 
-    write_csr(sptbr, addrFromPPtr(pd_pptr));
+    printf("pd_pptr = 0x%x\n", pd_pptr);
+    setCurrentPD(addrFromPPtr(pd_pptr));
+
     return pd_cap;
 }
 
