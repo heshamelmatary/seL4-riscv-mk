@@ -40,7 +40,6 @@ typedef seL4_CPtr seL4_RISCV_IPI;
 
 typedef struct seL4_UserContext_ {
    /* FIXME: All registers for now */
-   seL4_Word pc;
    seL4_Word ra;
    seL4_Word sp;
    seL4_Word t0;

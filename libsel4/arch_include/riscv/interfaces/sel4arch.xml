@@ -10,7 +10,6 @@
   -->
 <api>
 	<struct name="seL4_UserContext">
-		<member name="pc"/>
 		<member name="ra"/>
 		<member name="sp"/>
 		<member name="t0"/>

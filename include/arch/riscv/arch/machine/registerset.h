@@ -88,8 +88,8 @@ static inline void Arch_initContext(user_context_t* context)
 static inline word_t CONST
 sanitiseRegister(register_t reg, word_t v)
 {
-  /* TODO */
-	return 0;
+  /* FIXME */
+	return v;
 }
 
 #endif /* __ASSEMBLER__ */

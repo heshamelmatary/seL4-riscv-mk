@@ -217,7 +217,7 @@ arch_types = {
         CapType("seL4_RISCV_Page"),
         CapType("seL4_RISCV_PageTable"),
         CapType("seL4_RISCV_PageDirectory"),
-        StructType("seL4_UserContext", WORD_SIZE_BITS * 18),
+        StructType("seL4_UserContext", WORD_SIZE_BITS * 17),
         ],
     "arm" : [
         Type("seL4_ARM_VMAttributes", WORD_SIZE_BITS),
