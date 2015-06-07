@@ -381,17 +381,15 @@ setVMRoot(tcb_t *tcb)
     //asid_t asid;
     pde_t *pd;
     //findPDForASID_ret_t  find_ret;
-    printf("setVMRoot \n");
+
     threadRoot = TCB_PTR_CTE_PTR(tcb, tcbVTable)->cap;
 
-    printf("threadRoot = 0x%x\n", threadRoot);
     if (cap_get_capType(threadRoot) != cap_page_directory_cap) {
         setCurrentPD(addrFromPPtr(l1pt));
         return;
     }
 
     pd = PDE_PTR(cap_page_directory_cap_get_capPDBasePtr(threadRoot));
-    printf("pd = 0x%x\n", pd);
 
     /* FIXME */
     //asid = 0;

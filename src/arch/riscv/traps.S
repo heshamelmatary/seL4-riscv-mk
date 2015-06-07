@@ -26,42 +26,39 @@ _start:
 
 trap_entry:
 
-  addi sp, sp, -8
+  csrr t0, sscratch 
 
-  sw   tp, 0(sp)
-  csrr tp, sscratch 
-
-  SREG x1, 4(tp)
-  SREG x2, 8(tp)
-  SREG x3, 12(tp)
-  SREG x4, 16(tp)
-  SREG x5, 20(tp)
-  SREG x6, 24(tp)
-  SREG x7, 28(tp)
-  SREG x8, 32(tp)
-  SREG x9, 36(tp)
-  SREG x10, 40(tp)
-  SREG x11, 44(tp)
-  SREG x12, 48(tp)
-  SREG x13, 52(tp)
-  SREG x14, 56(tp)
-  SREG x15, 60(tp)
-  SREG x16, 64(tp)
-  SREG x17, 68(tp)
-  SREG x18, 72(tp)
-  SREG x19, 76(tp)
-  SREG x20, 80(tp)
-  SREG x21, 84(tp)
-  SREG x22, 88(tp)
-  SREG x23, 92(tp)
-  SREG x24, 96(tp)
-  SREG x25, 100(tp)
-  SREG x26, 104(tp)
-  SREG x27, 108(tp)
-  SREG x28, 112(tp)
-  SREG x29, 116(tp)
-  SREG x30, 120(tp)
-  SREG x31, 124(tp)
+  SREG x1, 4(t0)
+  SREG x2, 8(t0)
+  SREG x3, 12(t0)
+  SREG x4, 16(t0)
+  SREG x5, 20(t0)
+  SREG x6, 24(t0)
+  SREG x7, 28(t0)
+  SREG x8, 32(t0)
+  SREG x9, 36(t0)
+  SREG x10, 40(t0)
+  SREG x11, 44(t0)
+  SREG x12, 48(t0)
+  SREG x13, 52(t0)
+  SREG x14, 56(t0)
+  SREG x15, 60(t0)
+  SREG x16, 64(t0)
+  SREG x17, 68(t0)
+  SREG x18, 72(t0)
+  SREG x19, 76(t0)
+  SREG x20, 80(t0)
+  SREG x21, 84(t0)
+  SREG x22, 88(t0)
+  SREG x23, 92(t0)
+  SREG x24, 96(t0)
+  SREG x25, 100(t0)
+  SREG x26, 104(t0)
+  SREG x27, 108(t0)
+  SREG x28, 112(t0)
+  SREG x29, 116(t0)
+  SREG x30, 120(t0)
+  SREG x31, 124(t0)
 
   la sp, PPTR_KERNEL_STACK_TOP
 
@@ -87,40 +84,49 @@ unknownsyscall:
 
 ret_user:
   csrw sepc, s2
-  
-  LREG x1, 4(tp)
-  LREG x2, 8(tp)
-  LREG x3, 12(tp)
-  LREG x4, 16(tp)
-  LREG x5, 20(tp)
-  LREG x6, 24(tp)
-  LREG x7, 28(tp)
-  LREG x8, 32(tp)
-  LREG x9, 36(tp)
-  LREG x10, 40(tp)
-  LREG x11, 44(tp)
-  LREG x12, 48(tp)
-  LREG x13, 52(tp)
-  LREG x14, 56(tp)
-  LREG x15, 60(tp)
-  LREG x16, 64(tp)
-  LREG x17, 68(tp)
-  LREG x18, 72(tp)
-  LREG x19, 76(tp)
-  LREG x20, 80(tp)
-  LREG x21, 84(tp)
-  LREG x22, 88(tp)
-  LREG x23, 92(tp)
-  LREG x24, 96(tp)
-  LREG x25, 100(tp)
-  LREG x26, 104(tp)
-  LREG x27, 108(tp)
-  LREG x28, 112(tp)
-  LREG x29, 116(tp)
-  LREG x30, 120(tp)
-  LREG x31, 124(tp)
 
-  lw   tp, 0(sp)
-  addi sp, sp, 8
+  la t0, ksCurThread
+  lw t0, 0(t0)
+
+  LREG x1, 4(t0)
+  LREG x2, 8(t0)
+  LREG x3, 12(t0)
+  LREG x4, 16(t0)
+  #LREG x5, 20(t0)
+  LREG x6, 24(t0)
+  LREG x7, 28(t0)
+  LREG x8, 32(t0)
+  LREG x9, 36(t0)
+  LREG x10, 40(t0)
+  LREG x11, 44(t0)
+  LREG x12, 48(t0)
+  LREG x13, 52(t0)
+  LREG x14, 56(t0)
+  LREG x15, 60(t0)
+  LREG x16, 64(t0)
+  LREG x17, 68(t0)
+  LREG x18, 72(t0)
+  LREG x19, 76(t0)
+  LREG x20, 80(t0)
+  LREG x21, 84(t0)
+  LREG x22, 88(t0)
+  LREG x23, 92(t0)
+  LREG x24, 96(t0)
+  LREG x25, 100(t0)
+  LREG x26, 104(t0)
+  LREG x27, 108(t0)
+  LREG x28, 112(t0)
+  LREG x29, 116(t0)
+  LREG x30, 120(t0)
+  LREG x31, 124(t0)
+
+  csrr t1, sscratch
+  beq  t0, t1, _normal_exit #ksCurThread has changes, jump to the new one 
+_context_switch:
+  csrw sepc, ra
+
+_normal_exit:
+  LREG x5, 20(t0) # t0
+  csrw sscratch, t0
 
   eret
