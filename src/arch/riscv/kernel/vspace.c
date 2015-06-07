@@ -378,7 +378,7 @@ void
 setVMRoot(tcb_t *tcb)
 {
     cap_t threadRoot;
-    asid_t asid;
+    //asid_t asid;
     pde_t *pd;
     //findPDForASID_ret_t  find_ret;
     printf("setVMRoot \n");
@@ -392,6 +392,9 @@ setVMRoot(tcb_t *tcb)
 
     pd = PDE_PTR(cap_page_directory_cap_get_capPDBasePtr(threadRoot));
     printf("pd = 0x%x\n", pd);
+
+    /* FIXME */
+    //asid = 0;
     //asid = cap_page_directory_cap_get_capPDMappedASID(threadRoot);
     /*find_ret = findPDForASID(asid);
     if (unlikely(find_ret.status != EXCEPTION_NONE || find_ret.pd != pd)) {
@@ -399,7 +402,7 @@ setVMRoot(tcb_t *tcb)
         return;
     }*/
 
-    //armv_contextSwitch(pd, asid);
+    riscv_vm_contextSwitch(pd);
 }
 
 static bool_t

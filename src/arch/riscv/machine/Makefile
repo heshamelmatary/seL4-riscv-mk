@@ -11,7 +11,8 @@
 DIRECTORIES += src/arch/riscv/machine
 
 ARCH_C_SOURCES += machine/registerset.c \
-									machine/hardware.c
+									machine/hardware.c \
+									machine/vcontext_switch.c
 #                  machine/cache.c \
 #                  machine/errata.c
 
