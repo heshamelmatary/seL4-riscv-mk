@@ -18,11 +18,12 @@ be upstream with seL4.
 Updates:
 ------------------
 
-	* seL4 root task on RISC-V is saying hi!
-  ![Alt text](https://lh3.googleusercontent.com/-H8JacNV4uF4/VWyNw41vnWI/AAAAAAAAGTs/hCmW85xGlPw/w484-h973-no/sel4roottask.png "seL4 root task is saying hi!") 
+  * [`seL4 on RISC-V is running SOS (Simple Operating System)`][7]
   * [`Porting seL4 to RISC-V | Status Update #1`][6]
+  ![Alttext](http://1.bp.blogspot.com/--e2fEOJs5cs/VXWupBfj9aI/AAAAAAAAGVk/noRdzvT3amo/s1600/Selection_218.png "seL4 root task is saying hi!") 
 
   [6]: http://heshamelmatary.blogspot.co.uk/2015/05/porting-sel4-to-risc-v-status-report-no1.html
+  [7]: http://heshamelmatary.blogspot.co.uk/2015/06/sel4-on-risc-v-is-running-sos-simple.html
 
 The seL4 Repository
 ===================
