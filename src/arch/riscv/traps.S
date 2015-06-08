@@ -126,7 +126,7 @@ _context_switch:
   csrw sepc, ra
 
 _normal_exit:
-  LREG x5, 20(t0) # t0
   csrw sscratch, t0
+  LREG x5, 20(t0) # t0
 
   eret
