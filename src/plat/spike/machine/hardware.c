@@ -160,6 +160,8 @@ void
 resetTimer(void)
 {
     /* Timer resets automatically */
+  uint32_t timer_val = read_csr(stime);
+  write_csr(stimecmp, timer_val = 0x1000);
 }
 
 /**
@@ -169,7 +171,8 @@ BOOT_CODE void
 initTimer(void)
 { 
   //write_csr(stime, 0x00000000);
-  write_csr(stimecmp, 0x00004e30);
+  uint32_t timer_val = read_csr(stime);
+  write_csr(stimecmp, timer_val = 0x1000);
   set_csr(sie, 0x0200);
 }
 
