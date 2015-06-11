@@ -65,6 +65,12 @@ trap_entry:
   csrr s2,  sepc
   addi s2, s2, 4
 
+  /* Check if it's an interrupt */
+  csrr s0, scause
+  srli s0, s0, 31
+  li   s1, 0x1
+  beq  s0, s1, handle_irq
+
   /* Move systemcall number to a0 */
   mv a0, a7
 
@@ -80,6 +86,11 @@ trap_entry:
 unknownsyscall:
   /* FIXME */
   la s0, handleUnknownSyscall
+  jalr s0
+  j   ret_user
+
+handle_irq:
+  la   s0, handleInterruptEntry
   jalr s0
 
 ret_user:

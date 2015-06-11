@@ -242,6 +242,15 @@ init_freemem(region_t ui_reg)
 BOOT_CODE static void
 init_irqs(cap_t root_cnode_cap)
 {
+    irq_t i;
+
+    for (i = 0; i <= maxIRQ; i++) {
+        setIRQState(IRQInactive, i);
+    }
+    setIRQState(IRQTimer, KERNEL_TIMER_IRQ);
+
+    /* provide the IRQ control cap */
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), BI_CAP_IRQ_CTRL), cap_irq_control_cap_new());
 }
 
 BOOT_CODE static bool_t
@@ -323,10 +332,13 @@ try_init_kernel(
   /* create the cap for managing thread domains */
     create_domain_cap(root_cnode_cap);
 
-  /* create the IRQ CNode */
+      /* create the IRQ CNode */
     if (!create_irq_cnode()) {
         return false;
     }
+
+    /* initialise the IRQ states and provide the IRQ control cap */
+    init_irqs(root_cnode_cap);
   
     /* create the bootinfo frame */
     bi_frame_pptr = allocate_bi_frame(0, 1, ipcbuf_vptr);
