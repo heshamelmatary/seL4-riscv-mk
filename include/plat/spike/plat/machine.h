@@ -19,11 +19,11 @@ enum IRQConstants {
     INTERRUPT_SW = 0,
     INTERRUPT_TIMER = 1,
     /* We don't need other IRQs for now at least */
-    maxIRQ = 2
+    maxIRQ = 3 
 } platform_interrupt_t;
 
 enum irqNumbers {
-    irqInvalid = 2
+    irqInvalid = 3
 };
 
 typedef uint32_t interrupt_t;
