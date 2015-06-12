@@ -62,14 +62,17 @@ trap_entry:
 
   la sp, PPTR_KERNEL_STACK_TOP
 
-  csrr s2,  sepc
-  addi s2, s2, 4
-
   /* Check if it's an interrupt */
   csrr s0, scause
   srli s0, s0, 31
   li   s1, 0x1
   beq  s0, s1, handle_irq
+
+    /* Set the return address to sepc + 4 in the case of a systemcall */
+_syscall:
+  csrr s2,  sepc
+  addi s2, s2, 4
+  csrw sepc, s2
 
   /* Move systemcall number to a0 */
   mv a0, a7
@@ -94,7 +97,6 @@ handle_irq:
   jalr s0
 
 ret_user:
-  csrw sepc, s2
 
   la t0, ksCurThread
   lw t0, 0(t0)
