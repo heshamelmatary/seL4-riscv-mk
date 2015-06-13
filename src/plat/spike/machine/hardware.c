@@ -58,10 +58,7 @@ getActiveIRQ(void)
 
   if(!(temp & 0x80000000UL))
     return irqInvalid;
-  
-  /* FIXME: Currently only Timer is supported */
-  /* Translate scause values to seL4 IRQ values */
-  //return temp;
+
   return (temp & 0xf);
 }
 
@@ -106,7 +103,6 @@ void
 resetTimer(void)
 {
     /* Timer resets automatically */
-  //printf("reset timer \n");
   uint32_t timer_val = read_csr(stime);
   write_csr(stimecmp, timer_val + 0x1000UL);
 }
