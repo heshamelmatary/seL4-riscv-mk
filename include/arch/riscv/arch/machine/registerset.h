@@ -25,8 +25,8 @@ enum _register {
   x5, t0 = 5,
   x6, t1 = 6,
   x7, t2 = 7,
-  x8, s0 = 7,
-  x9, s1 = 8,
+  x8, s0 = 8,
+  x9, s1 = 9,
 
   /* x10-x17 > a0-a7 */
   x10 = 10, a0 = 10, capRegister = 10, badgeRegister = 10,
