@@ -64,10 +64,19 @@ trap_entry:
 
   /* Check if it's an interrupt */
   csrr s0, scause
+  csrr s3, scause
+
   srli s0, s0, 31
   li   s1, 0x1
   beq  s0, s1, handle_irq
 
+  andi s3, s3, 0xf
+  li   s4, 8
+  blt  s3, s4, _error
+  j _syscall
+
+_error:
+  j _error
     /* Set the return address to sepc + 4 in the case of a systemcall */
 _syscall:
   csrr s2,  sepc
@@ -83,6 +92,7 @@ _syscall:
   nop
   la  s0, handleSyscall
   jalr s0
+  SREG s2, 4(t0)
   nop
   j   ret_user
 
