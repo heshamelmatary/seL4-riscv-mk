@@ -40,8 +40,8 @@ seL4_Send(seL4_CPtr dest, seL4_MessageInfo_t msgInfo)
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysSend;
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 }
 
 static inline void
@@ -72,8 +72,8 @@ seL4_SendWithMRs(seL4_CPtr dest, seL4_MessageInfo_t msgInfo,
     }
 
     /* Perform the system call. */
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 }
 
 static inline void
@@ -90,8 +90,8 @@ seL4_NBSend(seL4_CPtr dest, seL4_MessageInfo_t msgInfo)
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysNBSend;
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 }
 
 static inline void
@@ -122,8 +122,8 @@ seL4_NBSendWithMRs(seL4_CPtr dest, seL4_MessageInfo_t msgInfo,
     }
 
     /* Perform the system call. */
-    asm volatile ("ecall" : "+r"(destptr) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 }
 
 static inline void
@@ -200,8 +200,8 @@ seL4_Wait(seL4_CPtr src, seL4_Word* sender)
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysWait;
-    asm volatile ("ecall" : "+r"(src_and_badge) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(src_and_badge), "=r"(info), "=r"(msg0), "=r"(msg1), "=r"(msg2), \
+    "=r"(msg3): "r"(scno));
 
     /* Write the message back out to memory. */
     seL4_SetMR(0, msg0);
@@ -233,8 +233,8 @@ seL4_WaitWithMRs(seL4_CPtr src, seL4_Word* sender,
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysWait;
-    asm volatile ("ecall" : "+r"(src_and_badge) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(src_and_badge) , "=r"(info.words[0]), "=r"(msg0), "=r"(msg1), "=r"(msg2), \
+    "=r"(msg3): "r"(scno));
 
     /* Write the message back out to memory. */
     if (mr0 != NULL) {
@@ -273,8 +273,8 @@ seL4_Call(seL4_CPtr dest, seL4_MessageInfo_t msgInfo)
 
     /* Perform the system call. */
     register seL4_Word scno asm("a7") = seL4_SysCall;
-    asm volatile ("ecall" : "+r"(destptr), "+r"(info) : "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(destptr), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 
     /* Write out the data back to memory. */
     seL4_SetMR(0, msg0);
@@ -351,8 +351,8 @@ seL4_ReplyWait(seL4_CPtr src, seL4_MessageInfo_t msgInfo, seL4_Word *sender)
 
     /* Perform the syscall. */
     register seL4_Word scno asm("a7") = seL4_SysReplyWait;
-    asm volatile ("ecall" : "+r"(src_and_badge) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(src_and_badge), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 
     /* Write the message back out to memory. */
     seL4_SetMR(0, msg0);
@@ -397,8 +397,8 @@ seL4_ReplyWaitWithMRs(seL4_CPtr src, seL4_MessageInfo_t msgInfo, seL4_Word *send
     }
 
     /* Perform the syscall. */
-    asm volatile ("ecall" : "+r"(src_and_badge) : "r"(info), "r"(msg0), "r"(msg1), "r"(msg2), \
-    "r"(msg3), "r"(scno));
+    asm volatile ("ecall" : "+r"(src_and_badge), "+r"(info), "+r"(msg0), "+r"(msg1), "+r"(msg2), \
+    "+r"(msg3): "r"(scno));
 
     /* Write out the data back to memory. */
     if (mr0 != NULL) {
@@ -427,7 +427,7 @@ static inline void
 seL4_Yield(void)
 {
     register seL4_Word scno asm("a7") = seL4_SysYield;
-    asm volatile ("ecall" : "+r"(scno));
+    asm volatile ("ecall" :: "r"(scno));
 }
 
 #ifdef SEL4_DEBUG_KERNEL
@@ -436,7 +436,7 @@ seL4_DebugPutChar(char c)
 {
     register seL4_Word arg1 asm("a0") = c;
     register seL4_Word scno asm("a7") = seL4_SysDebugPutChar;
-    asm volatile ("ecall" : "+r"(arg1) : "r"(scno));
+    asm volatile ("ecall" :: "r"(arg1), "r"(scno));
 }
 #endif
 
@@ -445,7 +445,7 @@ static inline void
 seL4_DebugHalt(void)
 {
     register seL4_Word scno asm("a7") = seL4_SysDebugHalt;
-    asm volatile ("ecall" : "+r"(scno));
+    asm volatile ("ecall" :: "r"(scno));
 }
 #endif
 
@@ -454,7 +454,7 @@ static inline void
 seL4_DebugSnapshot(void)
 {
     register seL4_Word scno asm("a7") = seL4_SysDebugSnapshot;
-    asm volatile ("ecall" : "+r"(scno));
+    asm volatile ("ecall" ::"r"(scno));
 }
 #endif
 
@@ -481,52 +481,7 @@ seL4_DebugRun(void (* userfn) (void *), void* userarg)
 #endif
 
 #ifdef CONFIG_BENCHMARK
-/* set the log index back to 0 */
-static inline void
-seL4_BenchmarkResetLog(void)
-{
-    register seL4_Word scno asm("r7") = seL4_SysBenchmarkResetLog;
-    asm volatile ("swi %[swi_num]"
-                  : /* no outputs */
-                  : [swi_num] "i" __SWINUM(seL4_SysBenchmarkResetLog), "r"(scno)
-                 );
-}
-
-/* read size words from the log starting from start into the ipc buffer.
- * @return the amount sucessfully read. Will cap at ipc buffer size and at size of
- * recorded log */
-static inline uint32_t
-seL4_BenchmarkDumpLog(seL4_Word start, seL4_Word size)
-{
-
-    register seL4_Word arg1 asm("r0") = (seL4_Word) start;
-    register seL4_Word arg2 asm("r1") = (seL4_Word) size;
-    register seL4_Word scno asm("r7") = seL4_SysBenchmarkDumpLog;
-    asm volatile ("swi %[swi_num]"
-                  : "+r" (arg1)
-                  : [swi_num] "i" __SWINUM(seL4_SysBenchmarkDumpLog), "r" (arg1), "r" (arg2), "r"(scno));
-
-    return (uint32_t) arg1;
-
-}
-
-/* Return the amount of things we tried to log. This could be greater than
- * the size of the log itself */
-static inline uint32_t
-seL4_BenchmarkLogSize(void)
-{
-
-    register seL4_Word arg1 asm("r0") = 0; /* required for retval */
-    register seL4_Word scno asm("r7") = seL4_SysBenchmarkLogSize;
-    asm volatile ("swi %[swi_num]"
-                  : "+r" (arg1)
-                  : [swi_num] "i" __SWINUM(seL4_SysBenchmarkLogSize), "r"(scno));
-
-    return (uint32_t) arg1;
-
-}
-
-
+/* TODO */
 #endif /* CONFIG_BENCHMARK */
 
 #undef __SWINUM
