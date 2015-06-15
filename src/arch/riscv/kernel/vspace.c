@@ -514,8 +514,8 @@ makeUserPTE(vm_page_size_t page_size, paddr_t paddr, vm_rights_t vm_rights)
     case RISCVNormalPage: {
  
          pte = pte_new(
-                  VIRT1_TO_IDX((uint32_t)addrFromPPtr(paddr)), /* ppn1 */
-                  VIRT0_TO_IDX((uint32_t)addrFromPPtr(paddr)), /* ppn0 */
+                  VIRT1_TO_IDX(paddr), /* ppn1 */
+                  VIRT0_TO_IDX(paddr), /* ppn0 */
                   0, /* sw */
                   0, /* dirty */
                   0, /* read */
