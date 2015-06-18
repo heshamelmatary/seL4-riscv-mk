@@ -15,7 +15,12 @@
 .section .text, "ax"
 
 BEGIN_FUNC(idle_thread)
-    li a0, 0
 1:
     j 1b
 END_FUNC(idle_thread)
+
+.bss
+.balign  4096
+_idle_tls:
+.space  8192
+

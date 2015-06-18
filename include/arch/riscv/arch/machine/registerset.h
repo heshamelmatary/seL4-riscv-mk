@@ -54,6 +54,9 @@ enum _register {
   x30 = 30, t5 = 30,
   x31 = 31, t6 = 31,
 
+  /* End of GP registers, the following are additional kernel-saved state. */
+	SSTATUS, 
+
   n_contextRegisters
 };
 

@@ -60,6 +60,9 @@ trap_entry:
   SREG x30, 120(t0)
   SREG x31, 124(t0)
 
+  csrr x1, sstatus
+  SREG x1, 128(t0)
+
   la sp, PPTR_KERNEL_STACK_TOP
 
   /* Check if it's an interrupt */
@@ -110,6 +113,9 @@ ret_user:
 
   la t0, ksCurThread
   lw t0, 0(t0)
+
+  LREG x1, 128(t0)
+  csrw sstatus, x1 
 
   LREG x1, 4(t0)
   LREG x2, 8(t0)
