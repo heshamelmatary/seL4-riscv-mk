@@ -15,6 +15,7 @@
 #include <arch/kernel/thread.h>
 #include <arch/linker.h>
 
+extern char _idle_tls[0];
 void
 Arch_switchToThread(tcb_t *tcb)
 {
@@ -26,11 +27,15 @@ BOOT_CODE void
 Arch_configureIdleThread(tcb_t *tcb)
 {
     setRegister(tcb, ra, (word_t)idleThreadStart);
+
+    /* Enable interrupts and keep working on supervisor mode */
+    setRegister(tcb, SSTATUS, (word_t) 0x18);
 }
 
 void
 Arch_switchToIdleThread(void)
 {
+    printf("Arch_switchToIdleThread \n");
     *riscvKSGlobalsFrame = 0;
 }
 
