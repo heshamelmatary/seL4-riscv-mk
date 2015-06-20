@@ -35,7 +35,6 @@ Arch_configureIdleThread(tcb_t *tcb)
 void
 Arch_switchToIdleThread(void)
 {
-    printf("Arch_switchToIdleThread \n");
     *riscvKSGlobalsFrame = 0;
 }
 
