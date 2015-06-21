@@ -100,7 +100,6 @@ _syscall:
   j   ret_user
 
 unknownsyscall:
-  /* FIXME */
   la s0, handleUnknownSyscall
   jalr s0
   j   ret_user
@@ -121,7 +120,7 @@ ret_user:
   LREG x2, 8(t0)
   LREG x3, 12(t0)
   LREG x4, 16(t0)
-  #LREG x5, 20(t0)
+  /* skip x5/t0 */
   LREG x6, 24(t0)
   LREG x7, 28(t0)
   LREG x8, 32(t0)
@@ -149,6 +148,9 @@ ret_user:
   LREG x30, 120(t0)
   LREG x31, 124(t0)
 
+  /* Check if there is a new higher priority task has taken control and 
+   * if so, set sepc to ra and not sepc + 4
+   */
   csrr t1, sscratch
   beq  t0, t1, _normal_exit #ksCurThread has changes, jump to the new one 
 _context_switch:
