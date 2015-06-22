@@ -472,8 +472,8 @@ init_kernel(
         fail ("Kernel init failed for some reason :(");
     }
 
-    /* FIXME: Enable floating point unit */
-    set_csr(sstatus, 0x00001000);
+    /* Enable floating point unit */
+    set_csr(sstatus, SSTATUS_FS);
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
