@@ -117,7 +117,7 @@ initTimer(void)
   uint32_t timer_val = read_csr(stime);
   /* 10ms? */
   write_csr(stimecmp, timer_val + 0x1C9C380);
-  set_csr(sie, 0x0020);
+  set_csr(sie, SIE_STIE);
 }
 
 static void invalidateL2(void)

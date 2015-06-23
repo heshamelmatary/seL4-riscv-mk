@@ -165,7 +165,6 @@ map_kernel_window(void)
        PPTR_VECTOR_TABLE, 
        VMKernelOnly);
     */
-    write_csr(stvec, PPTR_VECTOR_TABLE);
     setCurrentPD(addrFromPPtr(l1pt));
 }
 
