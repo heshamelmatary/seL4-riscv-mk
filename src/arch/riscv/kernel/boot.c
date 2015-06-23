@@ -477,6 +477,8 @@ init_kernel(
     /* Set to user mode */
     clear_csr(sstatus, 0x10);
     write_csr(sepc, v_entry);
+    /* Set vector table address for S-Mode */
+    write_csr(stvec, PPTR_VECTOR_TABLE);
     write_csr(sscratch, ksCurThread);
 }
 

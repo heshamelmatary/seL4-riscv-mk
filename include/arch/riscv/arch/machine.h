@@ -55,6 +55,7 @@
 
 #define SIP_SSIP MIP_SSIP
 #define SIP_STIP MIP_STIP
+#define SIE_STIE 0x0020
 
 #define PRV_U 0
 #define PRV_S 1
@@ -80,6 +81,7 @@
 #define IMPL_ROCKET 1
 
 #define DEFAULT_MTVEC 0x100
+#define seL4_STVEC    0xf0000000
 
 #ifndef __ASSEMBLER__
 
