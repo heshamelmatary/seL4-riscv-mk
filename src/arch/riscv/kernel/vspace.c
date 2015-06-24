@@ -371,6 +371,22 @@ void
 unmapPage(vm_page_size_t page_size, asid_t asid, vptr_t vptr, void *pptr)
 {
     printf("Hit unimplemented unmapPage \n");
+    paddr_t addr = addrFromPPtr(pptr);
+    lookupPTSlot_ret_t lu_ret;
+
+    lu_ret = lookupPTSlot(find_ret.pd, vptr);
+    if (unlikely(lu_ret.status != EXCEPTION_NONE)) {
+        return;
+    }
+
+    if (unlikely(pte_ptr_get_pteType(lu_ret.ptSlot) != pte_pte_small)) {
+        return;
+    }
+    if (unlikely(pte_pte_ptr_get_address(lu_ret.ptSlot) != addr)) {
+        return;
+    }
+
+    *(lu_ret.ptSlot) = 0;
 }
 
 void
