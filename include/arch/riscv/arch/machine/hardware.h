@@ -43,6 +43,8 @@
 #define PTE_CREATE(PPN, TYPE) \
   (((PPN) << PTE_PPN_SHIFT) | (TYPE) | PTE_V)
 
+#define TIMER_TICK_NS 0x1C9C380
+
 #ifndef __ASSEMBLER__
 
 #include <arch/types.h>

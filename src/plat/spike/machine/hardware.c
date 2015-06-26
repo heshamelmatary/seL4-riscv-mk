@@ -105,7 +105,7 @@ resetTimer(void)
     /* Timer resets automatically */
   uint32_t timer_val = read_csr(stime);
   /* 10ms? */
-  write_csr(stimecmp, timer_val + 0x1C9C380);
+  write_csr(stimecmp, timer_val + TIMER_TICK_NS);
 }
 
 /**
@@ -116,7 +116,7 @@ initTimer(void)
 { 
   uint32_t timer_val = read_csr(stime);
   /* 10ms? */
-  write_csr(stimecmp, timer_val + 0x1C9C380);
+  write_csr(stimecmp, timer_val + TIMER_TICK_NS);
   set_csr(sie, SIE_STIE);
 }
 
