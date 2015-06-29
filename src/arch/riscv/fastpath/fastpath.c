@@ -20,7 +20,6 @@
 #include <config.h>
 #include <assert.h>
 #include <arch/fastpath/fastpath.h>
-#include <armv/fastpath.h>
 
 /* When building the fastpath the assembler in traps.S makes these
  * assumptions. Because compile_asserts are hard to do in assembler,
@@ -79,27 +78,11 @@ lookup_fp(cap_t cap, cptr_t cptr)
 static inline void
 clearExMonitor_fp(void)
 {
-    uint32_t temp1 = 0;
-    uint32_t temp2;
-    asm volatile (
-        "strex %[output], %[mem], [%[mem]]"
-        : [output]"+r"(temp1)
-        : [mem]"r"(&temp2)
-    );
 }
 
 static inline void FORCE_INLINE
 switchToThread_fp(tcb_t *thread, pde_t *cap_pd, pde_t stored_hw_asid)
 {
-    hw_asid_t hw_asid;
-
-    hw_asid = pde_pde_invalid_get_stored_hw_asid(stored_hw_asid);
-
-    armv_contextSwitch_fp(cap_pd, hw_asid);
-
-    *armKSGlobalsFrame = thread->tcbIPCBuffer;
-    ksCurThread = thread;
-    clearExMonitor_fp();
 }
 
 static inline void
