@@ -3,10 +3,6 @@
 
 #include "hardware.h"
 
-/* Offsets within the user context, these need to match the order in
- * register_t below */
-#define PT_LR_svc           (1 * 4)
-
 #ifndef __ASSEMBLER__
 
 #include <stdint.h>
