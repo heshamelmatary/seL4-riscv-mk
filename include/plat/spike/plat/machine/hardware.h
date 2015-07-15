@@ -13,10 +13,10 @@
 
 #define physBase          0x10000000
 #define PADDR_BASE        physBase /* for compatibility with proofs */
-#define kernelBase        0xF0000000
+#define kernelBase        0x40000000
 #define physMappingOffset (kernelBase - physBase)
 #define BASE_OFFSET       physMappingOffset
-#define PPTR_TOP          0xFFC00000
+#define PPTR_TOP          0x4FE00000
 #define PADDR_TOP         (PPTR_TOP - BASE_OFFSET)
 
 #ifndef __ASSEMBLER__

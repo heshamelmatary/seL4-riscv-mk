@@ -906,6 +906,7 @@ DECLARE_CAUSE("stimehw", CAUSE_STIMEHW)
 DECLARE_CAUSE("mtimeh", CAUSE_MTIMEH)
 #endif
 
+extern pde_t l1pt[512] __attribute__ ((aligned(4096)));
 
 static inline void vsetcfg(long cfg)
 {
@@ -1005,7 +1006,19 @@ static inline void clearMemory(void* ptr, unsigned int bits)
 /** MODIFIES: [*] */
 static inline void setCurrentPD(paddr_t addr)
 {
-    write_csr(sptbr, addr);
+    uint32_t index = addr >> 30;
+    addr = addr / 0x1000;
+    printf(" addr = 0x%x\n",  addr);
+    l1pt[0] =      pde_new(
+                   (addr >> 18) & 0xF,
+                   (addr >> 9) & 0x1FF,
+                   (addr) & 0x1FF,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    RISCV_PTE_TYPE_TABLE,
+                    1 /* valid */
+                    );
 }
 
 #endif // __ASSEMBLER__

@@ -14,7 +14,7 @@
 #include <sel4/types.h>
 
 enum {
-    seL4_GlobalsFrame = 0xFFC01000,
+    seL4_GlobalsFrame = 0x4FE01000,
 };
 
 static inline seL4_IPCBuffer*

@@ -13,7 +13,7 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* WARNING: constants also defined in plat/machine/hardware.h */
-KERNEL_BASE   = 0xF0000000;
+KERNEL_BASE   = 0x40000000;
 PHYS_BASE     = 0x10000000;
 KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
 
@@ -21,7 +21,7 @@ SECTIONS
 {
     . = . + KERNEL_BASE;
 
-    .vector 0xF0000000:
+    .vector 0x40000000:
     {
         *(.vector) 
     }

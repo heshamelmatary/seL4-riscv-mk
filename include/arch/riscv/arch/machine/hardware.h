@@ -4,11 +4,11 @@
 /* Include cache, MMU related functions */
 #define PAGE_BITS 12
 
-#define PPTR_VECTOR_TABLE 0xF0000000
-#define PPTR_GLOBALS_PAGE 0xFFC01000
+#define PPTR_VECTOR_TABLE 0x40000000
+#define PPTR_GLOBALS_PAGE 0x4FE01000
 
 /* The stack is the very last page of virtual memory. */
-#define PPTR_KERNEL_STACK 0xFFFF1000
+#define PPTR_KERNEL_STACK 0x4FFF1000
 #define PPTR_KERNEL_STACK_TOP (PPTR_KERNEL_STACK + 0x1000 - 16)
 
 /* page table entry (PTE) fields */
@@ -20,6 +20,14 @@
 
 #define PTE_PPN_SHIFT 10
 #define PTE_PPN1_SHIFT 20
+
+#define PTE64_PPN2_SHIFT 28
+#define PTE64_PPN1_SHIFT 19
+#define PTE64_PPN0_SHIFT 10 
+
+#define SV39_VIRT_TO_VPN2(addr) ((addr) >> 30)
+#define SV39_VIRT_TO_VPN1(addr) ((addr) >> 21)
+#define SV39_VIRT_TO_VPN0(addr) ((addr) >> 12)
 
 /* Virtual address to index conforming sv32 PTE format */ 
 #define VIRT1_TO_IDX(addr) ((addr) >> 22)
