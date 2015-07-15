@@ -27,9 +27,11 @@
 #include <plat/machine/devices.h>
 #include <plat/machine/hardware.h>
 
+
 char riscv_kernel_stack[4096] __attribute__ ((aligned(4096))) BOOT_DATA;
-pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
-pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
+pde_t l1pt[512] __attribute__ ((aligned(4096))) BOOT_DATA;
+pte_t l2pt[512] __attribute__ ((aligned(4096))) BOOT_DATA;
+pte_t l3pt[512] __attribute__ ((aligned(4096))) BOOT_DATA;
 
 struct resolve_ret {
     paddr_t frameBase;
@@ -79,20 +81,20 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
 {
 
     /* First level page table */
-    uint32_t idx = VIRT0_TO_IDX(vaddr);
+    uint32_t idx = SV39_VIRT_TO_VPN0(vaddr) & 0x1FF;
 
     /* vaddr lies in the region the global PT covers */
     assert(vaddr >= PPTR_TOP);
-
-    l2pt[idx] = pte_new(
-      VIRT1_TO_IDX(paddr), /* ppn1 */
-      VIRT0_TO_IDX(paddr), /* ppn0 */
-      0, /* sw */
-      0, /* dirty */
-      0, /* read */
-      APFromVMRights(vm_rights), /* type */
-      1 /* valid */
-    );   
+    l3pt[idx] =     pte_new(
+                   (SV39_VIRT_TO_VPN2(paddr)),
+                   (SV39_VIRT_TO_VPN1(paddr)) & 0x1FF,
+                   (SV39_VIRT_TO_VPN0(paddr)) & 0x1FF,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    APFromVMRights(vm_rights), /* type */
+                    1 /* valid */
+                    ); 
 }
 
 BOOT_CODE VISIBLE void
@@ -102,49 +104,80 @@ map_kernel_window(void)
     uint32_t idx, limit;
     pde_t    pde;
     long     i;
-
+    uint32_t temp;
     /* mapping of kernelBase (virtual address) to kernel's physBase  */
     /* up to end of virtual address space minus 4MB */
-    phys = VIRT1_TO_IDX(physBase);
+    phys = SV39_VIRT_TO_VPN1(physBase) & 0x1FF;
     idx  = VIRT1_TO_IDX(kernelBase);
     limit = idx + 63;
-     
-    /*  4 MB Mega Pages that covers 256 MiB - total memory */
-    for(i = 0; idx < limit ; idx++, phys++)
-    {
-      l1pt[idx] = pde_new(
-              phys,
-              0,
-              0,  /* sw */
-              0,  /* dirty */ 
-              0,  /* read */
-              RISCV_PTE_TYPE_SRWX, /* type */
-              1 /* valid */
-       );    
-    }
+         
+    printf("Mapping kernel Windows\n");
 
-    assert((phys << 22) == PADDR_TOP);
+    l1pt[0] = pde_new(
+                   (SV39_VIRT_TO_VPN2(temp)) & 0xF,
+                   (SV39_VIRT_TO_VPN1(temp)) & 0x1FF,
+                   (SV39_VIRT_TO_VPN0(temp)) & 0x1FF,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    RISCV_PTE_TYPE_SRWX,
+                    1 /* valid */
+                    );
+
+    /* Refactor l2pt address to fit into pde format */
+    temp = (uint32_t) addrFromPPtr(l2pt) / 0x1000;
+ 
+    printf("temp = 0x%x \n", temp);
+    /* 256 MiB kernel mapping (128 PTE * 2MiB per entry) */
+    l1pt[1] =  pde_new(
+                   (temp >> 18) & 0xF,
+                   (temp >> 9) & 0x1FF,
+                   (temp) & 0x1FF,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    RISCV_PTE_TYPE_TABLE,
+                    1 /* valid */
+                    );
+    
+    for(i = 0; i < 127; i++, phys++)
+    {
+     /* The first two bits are always 0b11 since the MSB is 0xF */
+     l2pt[i] = pte_new(
+                   (physBase >> 30) & 0x1FF,
+                   (phys) & 0x1FF,
+                    0,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    RISCV_PTE_TYPE_SRWX,
+                    1 /* valid */
+                    );
+    }
+    printf("phys << 21 = 0x%x\n", phys << 21);
+    assert((phys << 21) == PADDR_TOP);
 
         /* point to the next last 4MB physical page index */
     //phys++;
     //idx++;
 
-    /* Map last 4MiB Page to page tables - 80400000 */
+    /* Map last 2MiB Page to page tables - */
 
-    uint32_t pt_phys_to_pde = (addrFromPPtr(l2pt)) / 0x1000;
+    uint32_t pt_phys_to_pde = (addrFromPPtr(l3pt)) / 0x1000;
 
-    l1pt[idx] = pde_new(
-              pt_phys_to_pde >> 10,
-              (0x3ff & pt_phys_to_pde),
-              0,  /* sw */
-              0,  /* dirty */ 
-              0,  /* read */
-              RISCV_PTE_TYPE_TABLE, /* type */
-              1 /* valid */
-       );
+      l2pt[127] =  pte_new(
+                   (pt_phys_to_pde >> 18) & 0x1FF,
+                   (pt_phys_to_pde >> 9) & 0x1FF,
+                   (pt_phys_to_pde) & 0x1FF,
+                    0,  /* sw */
+                    0,  /* dirty */ 
+                    0,  /* read */
+                    RISCV_PTE_TYPE_TABLE,
+                    1 /* valid */
+                    );
 
     /* now start initialising the page table */
-    memzero(l2pt, 1 << 12);
+    memzero(l3pt, 1 << 12);
     
     /* map global page */
     map_kernel_frame(
@@ -164,7 +197,8 @@ map_kernel_window(void)
        PPTR_VECTOR_TABLE, 
        VMKernelOnly);
     */
-    setCurrentPD(addrFromPPtr(l1pt));
+
+    write_csr(sptbr, addrFromPPtr(l1pt));
 }
 
 BOOT_CODE void
@@ -173,14 +207,14 @@ map_it_pt_cap(cap_t pt_cap)
     pde_t* pd   = PDE_PTR(cap_page_table_cap_get_capPTMappedObject(pt_cap));
     pte_t* pt   = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(pt_cap));
     uint32_t pdIndex = cap_page_table_cap_get_capPTMappedIndex(pt_cap);
-    pde_t* targetSlot = pd + pdIndex;
+    pte_t* targetSlot = pd + pdIndex;
     int i = 0;
 
     uint32_t pt_phys_to_pde = (addrFromPPtr(pt))/ 0x1000;
 
-    *targetSlot = pde_new(
-                      pt_phys_to_pde >> 10, /* address */
-                      (0x3ff & pt_phys_to_pde), /* address */
+    *targetSlot = pte_new((pt_phys_to_pde >> 18) & 0xF,
+                      (pt_phys_to_pde >> 9) & 0x1FF , /* address */
+                      (pt_phys_to_pde) & 0x1FF, /* address */
                       0, /* sw */
                       0, /* dirty */
                       0, /* read */
@@ -195,21 +229,27 @@ map_it_frame_cap(cap_t frame_cap)
     pte_t* pt;
     pte_t* targetSlot;
     uint32_t index;
-    void*  frame = (void*)cap_frame_cap_get_capFBasePtr(frame_cap);
+    uint32_t frame = (uint32_t)cap_frame_cap_get_capFBasePtr(frame_cap);
 
+    
     pt = PT_PTR(cap_frame_cap_get_capFMappedObject(frame_cap));
+
+    //printf("cap_frame_cap_get_capFMappedObject(frame_cap) = 0x%x\n", cap_frame_cap_get_capFMappedObject(frame_cap));
+    //printf("pt = 0x%x\n");
     index = cap_frame_cap_get_capFMappedIndex(frame_cap);
     targetSlot = pt + index;
-
+    //printf("index = 0x%x\n", index);  
     *targetSlot = pte_new(
-                  VIRT1_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn1 */
-                  VIRT0_TO_IDX((uint32_t)addrFromPPtr(frame)), /* ppn0 */
+                  (SV39_VIRT_TO_VPN2(addrFromPPtr(frame))) & 0xF,
+                  (SV39_VIRT_TO_VPN1(addrFromPPtr(frame))) & 0x1FF,
+                  (SV39_VIRT_TO_VPN0(addrFromPPtr(frame))) & 0x1FF,
                   0, /* sw */
                   0, /* dirty */
                   0, /* read */
                   APFromVMRights(VMReadWrite), /* type */
                   1 /* valid */
                 );
+  //printf("frame = 0x%x\n");
 }
 
 BOOT_CODE void
@@ -228,9 +268,9 @@ void
 copyGlobalMappings(pde_t *newPD)
 {
     unsigned int i;
-    pde_t *global_pd = l1pt;
+    pde_t *global_pd = l2pt;
 
-    for (i = VIRT1_TO_IDX(kernelBase); i < BIT(PD_BITS); i++) {
+    for (i = 0; i < 128; i++) {
             newPD[i] = global_pd[i];
     }
 }
@@ -287,16 +327,17 @@ lookupPTSlot(pde_t *pd, vptr_t vptr)
     } else {
         pte_t *pt;
         unsigned int ptIndex;
-        uint32_t ppn1, ppn0, pt_resolve;
+        uint32_t ppn2, ppn1, ppn0, pt_resolve;
 
+        ppn2 = pde_get_ppn2(*pdSlot);
         ppn1 = pde_get_ppn1(*pdSlot);
         ppn0 = pde_get_ppn0(*pdSlot);
-        pt_resolve = ppn1 << 10 | ppn0;
+        pt_resolve = ppn2 << 18 | ppn1 << 9 | ppn0;
         pt_resolve = pt_resolve * 0x1000;
 
         pte_t *pt_ptr = ptrFromPAddr(pt_resolve);
 
-        ptIndex = VIRT0_TO_IDX(vptr);
+        ptIndex = SV39_VIRT_TO_VPN0(vptr);
         ret.pt = pt_ptr;
         ret.ptIndex = ptIndex;
         ret.status = EXCEPTION_NONE;
@@ -350,7 +391,7 @@ pageTableMapped(asid_t asid, vptr_t vaddr, pte_t* pt)
 
 void unmapPageTable(pde_t* pd, uint32_t pdIndex)
 {
-    pd[pdIndex] = pde_new(
+    pd[pdIndex] = pde_new(0,
                       0,  /* ppn1 */
                       0,  /* ppn0 */
                       0,  /* sw */
@@ -521,8 +562,9 @@ makeUserPTE(vm_page_size_t page_size, paddr_t paddr, vm_rights_t vm_rights)
     case RISCVNormalPage: {
  
          pte = pte_new(
-                  VIRT1_TO_IDX(paddr), /* ppn1 */
-                  VIRT0_TO_IDX(paddr), /* ppn0 */
+                  SV39_VIRT_TO_VPN2(paddr) & 0xf,
+                  SV39_VIRT_TO_VPN1(paddr) & 0x1ff, /* ppn1 */
+                  SV39_VIRT_TO_VPN0(paddr) & 0x1ff, /* ppn0 */
                   0, /* sw */
                   0, /* dirty */
                   0, /* read */
@@ -599,7 +641,7 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    pdIndex = vaddr >> 22;
+    pdIndex = (vaddr >> 21) & 0x1FF;
 
     pdSlot = &pd[pdIndex];
 
@@ -614,9 +656,9 @@ decodeRISCVPageTableInvocation(word_t label, unsigned int length,
 
     uint32_t pt_phys_to_pde = paddr / 0x1000;
 
-    pde = pde_new(
-                      pt_phys_to_pde >> 10, /* address */
-                      (0x3ff & pt_phys_to_pde), /* address */
+    pde = pde_new(    (pt_phys_to_pde >> 18) & 0xF,
+                      (pt_phys_to_pde >> 9) & 0x1FF, /* address */
+                      (pt_phys_to_pde) & 0x1FF, /* address */
                       0, /* sw */
                       0, /* dirty */
                       0, /* read */
