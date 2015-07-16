@@ -1,6 +1,5 @@
 void riscv_vm_contextSwitch(pde_t* cap_pd)
 {
-    printf("riscv_vm_contextSwitch\n");
     setCurrentPD(addrFromPPtr(cap_pd));
     //setCurrentASID(cap_pd);
 }
