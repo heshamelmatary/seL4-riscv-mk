@@ -115,7 +115,7 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
         return cap_null_cap_new();
     }
     memzero(PDE_PTR(pd_pptr), 1 << PD_SIZE_BITS);
-    printf("pd_pptr = 0x%x\n", pd_pptr);
+
     copyGlobalMappings(PDE_PTR(pd_pptr));
     
     pd_cap =
@@ -321,7 +321,6 @@ try_init_kernel(
 
     map_kernel_window();
 
-    printf("Mapped Kernel Windows \n");
     /* initialise the CPU */
     init_cpu();
 
@@ -351,7 +350,6 @@ try_init_kernel(
         return false;
     }
 
-    printf("Construct an initial address space \n");
     /* Construct an initial address space with enough virtual addresses
      * to cover the user image + ipc buffer and bootinfo frames */
     it_pd_cap = create_it_address_space(root_cnode_cap, it_v_reg);
@@ -360,7 +358,6 @@ try_init_kernel(
         return false;
     }
 
-    printf("Create and map bootinfo frame cap\n");
     /* Create and map bootinfo frame cap */
     create_bi_frame_cap(
         root_cnode_cap,
@@ -369,14 +366,12 @@ try_init_kernel(
         bi_frame_vptr
     );
 
-    printf("create the initial thread's IPC buffer\n");
     /* create the initial thread's IPC buffer */
     ipcbuf_cap = create_ipcbuf_frame(root_cnode_cap, it_pd_cap, ipcbuf_vptr);
     if (cap_get_capType(ipcbuf_cap) == cap_null_cap) {
         return false;
     }
 
-    printf("create all userland image frames \n");
     /* create all userland image frames */
     create_frames_ret =
         create_frames_of_region(
@@ -396,7 +391,6 @@ try_init_kernel(
         return false;
     }
 
-    printf("create the initial thread\n");
     /* create the initial thread */
     if (!create_initial_thread(
                 root_cnode_cap,
@@ -424,7 +418,6 @@ try_init_kernel(
 
     /* finalise the bootinfo frame */
     bi_finalise();
-  printf("Returning ... \n");
   return true;
 }
 
@@ -470,7 +463,7 @@ init_kernel(
 {
     printf( "********* seL4 microkernel on RISC-V 32-bit platform *********\n"); 
 
-    //init_plat();
+    init_plat();
     bool_t result;
 
     result = try_init_kernel(ui_p_reg_start,
@@ -490,6 +483,5 @@ init_kernel(
     /* Set vector table address for S-Mode */
     write_csr(stvec, PPTR_VECTOR_TABLE);
     write_csr(sscratch, ksCurThread);
-    printf("OK, This is perfect \n");
 }
 
