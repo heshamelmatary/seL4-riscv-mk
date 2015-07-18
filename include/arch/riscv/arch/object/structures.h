@@ -99,8 +99,8 @@ typedef struct user_data user_data_t;
 static inline uint32_t CONST
 cap_frame_cap_get_capFMappedObject(cap_t cap)
 {
-    return (cap_frame_cap_get_capFMappedObjectHigh(cap) << 12);
-    //return (cap_frame_cap_get_capFMappedObjectHigh(cap) << 12) | ((cap_frame_cap_get_capFMappedObjectLow(cap) & 0x3 ) << 10);
+    //return (cap_frame_cap_get_capFMappedObjectHigh(cap) << 12);
+    return (cap_frame_cap_get_capFMappedObjectHigh(cap) << 12) | ((cap_frame_cap_get_capFMappedObjectLow(cap) & 0x3 ) << 10);
 }
 
 static inline cap_t CONST

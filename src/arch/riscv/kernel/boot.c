@@ -25,6 +25,8 @@
 #include <stdarg.h>
 //#include <string.h>
 
+#define RISCV64 1
+
 void trap_entry();
 void pop_tf(trapframe_t*);
 
@@ -50,6 +52,8 @@ use_large, bool_t executable)
     cap_t cap;
     pde_t *pd = PD_PTR(cap_page_directory_cap_get_capPDBasePtr(pd_cap));
     pte_t *pt;
+
+#ifdef RISCV64
     uint32_t pd_index = SV39_VIRT_TO_VPN1(vptr) & 0x1FF;
     uint32_t pt_index = SV39_VIRT_TO_VPN0(vptr) & 0x1FF;
     uint32_t ppn2, ppn1, ppn0, pt_resolve;
@@ -73,7 +77,28 @@ use_large, bool_t executable)
                   FMAPPED_OBJECT_LOW(PT_REF(pt)),  /* capFMappedObjectLow  */
                   pptr                             /* capFBasePtr          */
               );
+#else
+    uint32_t pd_index = VIRT1_TO_IDX(vptr);
+    uint32_t pt_index = VIRT0_TO_IDX(vptr);
+    uint32_t ppn1, ppn0, pt_resolve;
 
+    ppn1 = pde_get_ppn1(pd[pd_index]);
+    ppn0 = pde_get_ppn0(pd[pd_index]);
+
+    pt_resolve = ppn1 << 10 | ppn0;
+    pt_resolve = pt_resolve * 0x1000;
+
+    pt = ptrFromPAddr(pt_resolve);
+
+    cap = cap_frame_cap_new(
+                  FMAPPED_OBJECT_HIGH(PT_REF(pt)), /* capFMappedObjectHigh */
+                  pt_index,                        /* capFMappedIndex      */
+                  0,                    /* capFSize             */
+                  wordFromVMRights(VMReadWrite),   /* capFVMRights         */
+                  FMAPPED_OBJECT_LOW(PT_REF(pt)),  /* capFMappedObjectLow  */
+                  pptr                             /* capFBasePtr          */
+              );
+#endif
     map_it_frame_cap(cap);
     return cap;
 }
@@ -85,7 +110,11 @@ create_it_page_table_cap(cap_t pd, pptr_t pptr, vptr_t vptr)
 {
 
     cap_t cap;
+#ifdef RISCV64
     uint32_t pd_index = (SV39_VIRT_TO_VPN1(vptr)) & 0x1FF;
+#else
+    uint32_t pd_index = VIRT1_TO_IDX(vptr);
+#endif
     cap = cap_page_table_cap_new(
               cap_page_directory_cap_get_capPDBasePtr(pd), /* capPTMappedObject */
               pd_index,                                    /* capPTMappedIndex  */
@@ -131,6 +160,7 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
             pt_vptr < it_v_reg.end;
             pt_vptr += BIT(PT_BITS + PAGE_BITS)) {
         pt_pptr = alloc_region(PT_SIZE_BITS);
+
         if (!pt_pptr) {
             return cap_null_cap_new();
         }
@@ -142,14 +172,13 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
             return cap_null_cap_new();
         }
     }
-
+    
     slot_pos_after = ndks_boot.slot_pos_cur;
     ndks_boot.bi_frame->ui_pt_caps = (slot_region_t) {
         slot_pos_before, slot_pos_after
     };
 
     setCurrentPD(addrFromPPtr(pd_pptr));
-
     return pd_cap;
 }
 
@@ -350,6 +379,7 @@ try_init_kernel(
         return false;
     }
 
+    printf("Construct an initial address space\n");
     /* Construct an initial address space with enough virtual addresses
      * to cover the user image + ipc buffer and bootinfo frames */
     it_pd_cap = create_it_address_space(root_cnode_cap, it_v_reg);
@@ -358,6 +388,7 @@ try_init_kernel(
         return false;
     }
 
+    printf("Create and map bootinfo frame cap \n");
     /* Create and map bootinfo frame cap */
     create_bi_frame_cap(
         root_cnode_cap,
@@ -366,6 +397,7 @@ try_init_kernel(
         bi_frame_vptr
     );
 
+    printf("Create the initial thread's IPC buffer \n");
     /* create the initial thread's IPC buffer */
     ipcbuf_cap = create_ipcbuf_frame(root_cnode_cap, it_pd_cap, ipcbuf_vptr);
     if (cap_get_capType(ipcbuf_cap) == cap_null_cap) {

@@ -28,8 +28,8 @@
 #include <plat/machine/hardware.h>
 
 char riscv_kernel_stack[4096] __attribute__ ((aligned(4096))) BOOT_DATA;
-pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
-pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4*1024*1024))) BOOT_DATA;
+pde_t l1pt[PTES_PER_PT] __attribute__ ((aligned(4096))) BOOT_DATA;
+pte_t l2pt[PTES_PER_PT] __attribute__ ((aligned(4096))) BOOT_DATA;
 
 struct resolve_ret {
     paddr_t frameBase;
@@ -164,6 +164,7 @@ map_kernel_window(void)
        PPTR_VECTOR_TABLE, 
        VMKernelOnly);
     */
+    
     setCurrentPD(addrFromPPtr(l1pt));
 }
 
@@ -196,7 +197,7 @@ map_it_frame_cap(cap_t frame_cap)
     pte_t* targetSlot;
     uint32_t index;
     void*  frame = (void*)cap_frame_cap_get_capFBasePtr(frame_cap);
-
+    
     pt = PT_PTR(cap_frame_cap_get_capFMappedObject(frame_cap));
     index = cap_frame_cap_get_capFMappedIndex(frame_cap);
     targetSlot = pt + index;
