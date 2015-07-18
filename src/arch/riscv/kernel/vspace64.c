@@ -154,7 +154,7 @@ map_kernel_window(void)
                     1 /* valid */
                     );
     }
-    printf("phys << 21 = 0x%x\n", phys << 21);
+
     assert((phys << 21) == PADDR_TOP);
 
         /* point to the next last 4MB physical page index */
