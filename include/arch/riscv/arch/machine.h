@@ -906,7 +906,7 @@ DECLARE_CAUSE("stimehw", CAUSE_STIMEHW)
 DECLARE_CAUSE("mtimeh", CAUSE_MTIMEH)
 #endif
 
-extern pde_t l1pt[512] __attribute__ ((aligned(4096)));
+//extern pde_t l1pt[512] __attribute__ ((aligned(4096)));
 
 static inline void vsetcfg(long cfg)
 {
@@ -978,6 +978,11 @@ typedef unsigned long pte_tt;
   asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
   __tmp; })
 
+#define RISCV64 1
+
+#ifdef RISCV64
+extern pde_t l1pt[512] __attribute__ ((aligned(4096)));
+#endif
 typedef struct
 {
   long gpr[32];
@@ -1004,8 +1009,10 @@ static inline void clearMemory(void* ptr, unsigned int bits)
 
 /* Address space control */
 /** MODIFIES: [*] */
+
 static inline void setCurrentPD(paddr_t addr)
 {
+#ifdef RISCV64 
     uint32_t index = addr >> 30;
     addr = addr / 0x1000;
     printf(" addr = 0x%x\n",  addr);
@@ -1019,6 +1026,9 @@ static inline void setCurrentPD(paddr_t addr)
                     RISCV_PTE_TYPE_TABLE,
                     1 /* valid */
                     );
+#else
+  write_csr(sptbr, addr);
+#endif
 }
 
 #endif // __ASSEMBLER__

@@ -13,8 +13,13 @@
 
 #include <sel4/types.h>
 
+#define RISCV64 1
 enum {
+#ifdef RISCV64
     seL4_GlobalsFrame = 0x4FE01000,
+#else
+    seL4_GlobalsFrame = 0x4FC01000,
+#endif
 };
 
 static inline seL4_IPCBuffer*
