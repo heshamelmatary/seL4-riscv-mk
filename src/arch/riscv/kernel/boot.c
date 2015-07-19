@@ -495,7 +495,7 @@ init_kernel(
 {
     printf( "********* seL4 microkernel on RISC-V 32-bit platform *********\n"); 
 
-    init_plat();
+    //init_plat();
     bool_t result;
 
     result = try_init_kernel(ui_p_reg_start,

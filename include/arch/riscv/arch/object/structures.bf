@@ -370,26 +370,6 @@ block stored_hw_asid {
     field pdeType 2
 }
 
--- block pte {
---    field ppn1       12
---    field ppn0            10
---    field sw              3
---    field dirty           1
---    field read            1
---    field type            4
---    field valid           1
---}
-
--- block pde {
---    field ppn1            12
---    field ppn0            10
---    field sw              3
---    field dirty           1
---    field read            1
---    field type            4
---    field valid           1
---}
-
 block pte {
     padding               32
     field ppn2       4
