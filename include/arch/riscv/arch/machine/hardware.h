@@ -4,10 +4,8 @@
 /* Include cache, MMU related functions */
 #define PAGE_BITS 12
 
-#define RISCV64 1
-
 #define PPTR_VECTOR_TABLE 0x40000000
-#ifdef RISCV64
+#ifdef CONFIG_ROCKET_CHIP
 #define PPTR_GLOBALS_PAGE 0x4FE01000
 #else
 #define PPTR_GLOBALS_PAGE 0x4FC01000

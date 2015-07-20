@@ -25,8 +25,6 @@
 #include <stdarg.h>
 //#include <string.h>
 
-#define RISCV64 1
-
 void trap_entry();
 void pop_tf(trapframe_t*);
 
@@ -53,7 +51,7 @@ use_large, bool_t executable)
     pde_t *pd = PD_PTR(cap_page_directory_cap_get_capPDBasePtr(pd_cap));
     pte_t *pt;
 
-#ifdef RISCV64
+#ifdef CONFIG_ROCKET_CHIP
     uint32_t pd_index = SV39_VIRT_TO_VPN1(vptr) & 0x1FF;
     uint32_t pt_index = SV39_VIRT_TO_VPN0(vptr) & 0x1FF;
     uint32_t ppn2, ppn1, ppn0, pt_resolve;
@@ -110,7 +108,7 @@ create_it_page_table_cap(cap_t pd, pptr_t pptr, vptr_t vptr)
 {
 
     cap_t cap;
-#ifdef RISCV64
+#ifdef CONFIG_ROCKET_CHIP
     uint32_t pd_index = (SV39_VIRT_TO_VPN1(vptr)) & 0x1FF;
 #else
     uint32_t pd_index = VIRT1_TO_IDX(vptr);

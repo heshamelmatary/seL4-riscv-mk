@@ -79,7 +79,6 @@ config ARCH_IA32
             select ARCH_ARM_V7A
             help
                 Support for Cortex A15 processor
-
     endchoice
 
     config PLAT_EXYNOS54XX
@@ -184,6 +183,14 @@ config ARCH_IA32
             help
                 Support for riscv/spike platform
     endchoice
+
+
+        config ROCKET_CHIP 
+            bool "ROCKET_CHIP"
+            depends on ARCH_RISCV
+            select ARCH_RISCV64
+            help
+                Support for RV64 Rocket Chip
 
         config PLAT_QEMU_RISCV
             bool "QEMU_RISCV"
