@@ -13,9 +13,8 @@
 
 #include <sel4/types.h>
 
-#define RISCV64 1
 enum {
-#ifdef RISCV64
+#ifdef CONFIG_ROCKET_CHIP
     seL4_GlobalsFrame = 0x4FE01000,
 #else
     seL4_GlobalsFrame = 0x4FC01000,

@@ -90,7 +90,6 @@ menu "seL4 System"
             select ARCH_ARM_V7A
             help
                 Support for Cortex A15 processor
-
     endchoice
 
     config PLAT_EXYNOS54XX
@@ -225,6 +224,19 @@ menu "seL4 System"
             help
                 Support for riscv/spike platform
     endchoice
+
+        config ROCKET_CHIP 
+            bool "ROCKET_CHIP"
+            depends on ARCH_RISCV
+            select ARCH_RISCV64
+            help
+                Support for RV64 Rocket Chip
+
+        config PLAT_QEMU_RISCV
+            bool "QEMU_RISCV"
+            depends on ARCH_RISCV
+            help
+                Support for riscv-softmmu platform
 
 source "$KERNEL_PATH/src/arch/arm/Kconfig"
 source "$KERNEL_PATH/src/plat/pc99/Kconfig"

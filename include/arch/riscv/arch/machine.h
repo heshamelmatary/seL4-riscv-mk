@@ -978,9 +978,7 @@ typedef unsigned long pte_tt;
   asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
   __tmp; })
 
-#define RISCV64 1
-
-#ifdef RISCV64
+#ifdef CONFIG_ROCKET_CHIP
 extern pde_t l1pt[512] __attribute__ ((aligned(4096)));
 #endif
 typedef struct
@@ -1012,7 +1010,7 @@ static inline void clearMemory(void* ptr, unsigned int bits)
 
 static inline void setCurrentPD(paddr_t addr)
 {
-#ifdef RISCV64 
+#ifdef CONFIG_ROCKET_CHIP
     uint32_t index = addr >> 30;
     addr = addr / 0x1000;
     printf(" addr = 0x%x\n",  addr);
