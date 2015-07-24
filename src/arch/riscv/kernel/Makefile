@@ -11,5 +11,5 @@
 DIRECTORIES += src/arch/riscv/kernel
 
 C_SOURCES += src/arch/riscv/kernel/thread.c \
-             src/arch/riscv/kernel/vspace.c \
+             src/arch/riscv/kernel/vspace64.c \
              src/arch/riscv/kernel/boot.c
