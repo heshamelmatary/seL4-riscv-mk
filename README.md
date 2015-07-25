@@ -18,12 +18,16 @@ be upstream with seL4.
 Updates:
 ------------------
 
+  * [`[HOWTO] Build and run seL4 on RISC-V targets`][9]
+  * [`seL4 runs on Rocket Chip (RISCV/FPGA)`][8]
   * [`seL4 on RISC-V is running SOS (Simple Operating System)`][7]
   * [`Porting seL4 to RISC-V | Status Update #1`][6]
   ![Alttext](http://1.bp.blogspot.com/--e2fEOJs5cs/VXWupBfj9aI/AAAAAAAAGVk/noRdzvT3amo/s1600/Selection_218.png "seL4 root task is saying hi!") 
 
   [6]: http://heshamelmatary.blogspot.co.uk/2015/05/porting-sel4-to-risc-v-status-report-no1.html
   [7]: http://heshamelmatary.blogspot.co.uk/2015/06/sel4-on-risc-v-is-running-sos-simple.html
+  [8]: http://heshamelmatary.blogspot.co.uk/2015/07/sel4-runs-on-rocket-chip-riscvfpga.html
+  [9]: http://heshamelmatary.blogspot.co.uk/2015/07/howto-build-and-run-sel4-on-risc-v.html
 
 The seL4 Repository
 ===================
