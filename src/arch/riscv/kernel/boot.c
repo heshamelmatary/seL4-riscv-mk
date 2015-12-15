@@ -23,6 +23,7 @@
 #include <machine.h>
 #include <limits.h>
 #include <stdarg.h>
+
 //#include <string.h>
 
 void trap_entry();
@@ -31,6 +32,7 @@ void pop_tf(trapframe_t*);
 typedef struct { pte_tt addr; void* next; } freelist_t;
 
 char test_area[4096] __attribute__((aligned(4*1024*1024))) BOOT_DATA;
+void *kernel_elf;
 
 /* pointer to the end of boot code/data in kernel image */
 /* need a fake array to get the pointer from the linker script */
@@ -101,6 +103,37 @@ use_large, bool_t executable)
     return cap;
 }
 
+BOOT_CODE cap_t
+create_mapped_it__bare_frame_cap(cap_t pd_cap, pptr_t pptr, vptr_t vptr, bool_t
+use_large, bool_t executable)
+{
+    cap_t cap;
+    pde_t *pd = PD_PTR(cap_page_directory_cap_get_capPDBasePtr(pd_cap));
+    pte_t *pt;
+    uint32_t pd_index = VIRT1_TO_IDX(vptr);
+    uint32_t pt_index = VIRT0_TO_IDX(vptr);
+    uint32_t ppn1, ppn0, pt_resolve;
+
+    ppn1 = pde_get_ppn1(pd[pd_index]);
+    ppn0 = pde_get_ppn0(pd[pd_index]);
+
+    pt_resolve = ppn1 << 10 | ppn0;
+    pt_resolve = pt_resolve * 0x1000;
+
+    pt = ptrFromPAddr(pt_resolve);
+
+    cap = cap_frame_cap_new(
+                  FMAPPED_OBJECT_HIGH(PT_REF(pt)), /* capFMappedObjectHigh */
+                  pt_index,                        /* capFMappedIndex      */
+                  0,                    /* capFSize             */
+                  wordFromVMRights(VMReadWrite),   /* capFVMRights         */
+                  FMAPPED_OBJECT_LOW(PT_REF(pt)),  /* capFMappedObjectLow  */
+                  pptr                             /* capFBasePtr          */
+              );
+
+    map_it_bare_frame_cap(cap);
+    return cap;
+}
 /* Create a page table for the initial thread */
 
 static BOOT_CODE cap_t
@@ -171,6 +204,16 @@ create_it_address_space(cap_t root_cnode_cap, v_region_t it_v_reg)
         }
     }
     
+    /* Allocate PT for kernel in cpio */
+    pt_pptr = alloc_region(PT_SIZE_BITS);
+    memzero(PTE_PTR(pt_pptr), 1 << PT_SIZE_BITS);
+    create_it_page_table_cap(pd_cap, pt_pptr, 0x10000000);
+
+    /* Allocate PT for shared frame */
+    pt_pptr = alloc_region(PT_SIZE_BITS);
+    memzero(PTE_PTR(pt_pptr), 1 << PT_SIZE_BITS);
+    create_it_page_table_cap(pd_cap, pt_pptr, 0xf0000000);
+
     slot_pos_after = ndks_boot.slot_pos_cur;
     ndks_boot.bi_frame->ui_pt_caps = (slot_region_t) {
         slot_pos_before, slot_pos_after
@@ -414,8 +457,27 @@ try_init_kernel(
     if (!create_frames_ret.success) {
         return false;
     }
+
     ndks_boot.bi_frame->ui_frame_caps = create_frames_ret.region;
-    
+
+    /* Create frame for elf kernel image in cpio 
+    for(int i = 0; i < 1024; i++)
+    {
+      if( cap_get_capType(create_mapped_it__bare_frame_cap(it_pd_cap, 0x4000 + i* 0x1000, 0x10000000 + i* 0x1000, false, false)) == cap_null_cap)
+        return false;
+    } */
+  
+    /* Shared frame */
+    if( cap_get_capType(create_mapped_it__bare_frame_cap(it_pd_cap, 0xf0000000, 0xf0000000, false, false)) == cap_null_cap)
+        return false;
+
+    if( cap_get_capType(create_mapped_it__bare_frame_cap(it_pd_cap, 0xf0001000, 0xf0001000, false, false)) == cap_null_cap)
+        return false;
+
+    if (!create_frames_ret.success) {
+        return false;
+    }
+
     /* create the idle thread */
     if (!create_idle_thread()) {
         return false;
@@ -448,6 +510,7 @@ try_init_kernel(
 
     /* finalise the bootinfo frame */
     bi_finalise();
+
   return true;
 }
 
@@ -488,14 +551,15 @@ init_kernel(
     paddr_t ui_p_reg_start,
     paddr_t ui_p_reg_end,
     int32_t pv_offset,
-    vptr_t  v_entry
+    vptr_t  v_entry,
+    void *  archive_start
 )
 {
     printf( "********* seL4 microkernel on RISC-V 32-bit platform *********\n"); 
 
     //init_plat();
     bool_t result;
-
+  
     result = try_init_kernel(ui_p_reg_start,
                              ui_p_reg_end,
                              pv_offset,

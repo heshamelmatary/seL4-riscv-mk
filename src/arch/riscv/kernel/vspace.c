@@ -214,6 +214,30 @@ map_it_frame_cap(cap_t frame_cap)
 }
 
 BOOT_CODE void
+map_it_bare_frame_cap(cap_t frame_cap)
+{
+    pte_t* pt;
+    pte_t* targetSlot;
+    uint32_t index;
+    void*  frame = (void*)cap_frame_cap_get_capFBasePtr(frame_cap);
+    
+    //printf(" (uint32_t)addrFromPPtr(frame) = 0x%x\n", frame);
+    pt = PT_PTR(cap_frame_cap_get_capFMappedObject(frame_cap));
+    index = cap_frame_cap_get_capFMappedIndex(frame_cap);
+    targetSlot = pt + index;
+
+    *targetSlot = pte_new(
+                  VIRT1_TO_IDX((uint32_t)frame), /* ppn1 */
+                  VIRT0_TO_IDX((uint32_t)frame), /* ppn0 */
+                  0, /* sw */
+                  0, /* dirty */
+                  0, /* read */
+                  APFromVMRights(VMReadWrite), /* type */
+                  1 /* valid */
+                );
+}
+
+BOOT_CODE void
 activate_global_pd(void)
 {
 }
