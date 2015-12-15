@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
 // See LICENSE for license details.
 
 #include <stdint.h>

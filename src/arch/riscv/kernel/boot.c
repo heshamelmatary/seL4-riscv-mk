@@ -1,4 +1,9 @@
 /*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
+/*
  * Copyright 2014, General Dynamics C4 Systems
  *
  * This software may be distributed and modified according to the terms of
@@ -551,8 +556,7 @@ init_kernel(
     paddr_t ui_p_reg_start,
     paddr_t ui_p_reg_end,
     int32_t pv_offset,
-    vptr_t  v_entry,
-    void *  archive_start
+    vptr_t  v_entry
 )
 {
     printf( "********* seL4 microkernel on RISC-V 32-bit platform *********\n"); 

@@ -1,4 +1,9 @@
 /*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
+/*
  * Copyright 2014, General Dynamics C4 Systems
  *
  * This software may be distributed and modified according to the terms of

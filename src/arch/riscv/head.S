@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
 #define MSTATUS_IE          0x00000001
 #define MSTATUS_PRV         0x00000006
 #define MSTATUS_IE1         0x00000008

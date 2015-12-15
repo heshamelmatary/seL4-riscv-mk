@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
 #ifndef __ARCH_OBJECT_TYPE_H
 #define __ARCH_OBJECT_TYPE_H
 

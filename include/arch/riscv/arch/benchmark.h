@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015 Hesham Almatary <heshamelmatary@gmail.com>
+ * Author: Hesham Almatary <heshamelmatary@gmail.com>
+ */
+
 #ifndef ARCH_BENCHMARK_H
 #define ARCH_BENCHMARK_H
 
