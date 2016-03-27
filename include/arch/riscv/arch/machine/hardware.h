@@ -4,14 +4,14 @@
 /* Include cache, MMU related functions */
 #define PAGE_BITS 12
 
-#define PPTR_VECTOR_TABLE 0x40000000
+#define PPTR_VECTOR_TABLE 0xFFFFFFFF80000000
 #ifdef CONFIG_ROCKET_CHIP
-#define PPTR_GLOBALS_PAGE 0x4FE01000
+#define PPTR_GLOBALS_PAGE 0xFFFFFFFF8FE01000
 #else
 #define PPTR_GLOBALS_PAGE 0x4FC01000
 #endif
 /* The stack is the very last page of virtual memory. */
-#define PPTR_KERNEL_STACK 0x4FFF1000
+#define PPTR_KERNEL_STACK 0xFFFFFFFF8FFF1000
 #define PPTR_KERNEL_STACK_TOP (PPTR_KERNEL_STACK + 0x1000 - 16)
 
 /* page table entry (PTE) fields */

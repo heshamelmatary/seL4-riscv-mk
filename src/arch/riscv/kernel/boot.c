@@ -481,6 +481,28 @@ uint32_t __ctzsi2(uint32_t x)
   return count;
 }
 
+uint32_t __clzdi2(uint32_t x)
+{
+  uint32_t count = 0;
+  while ( !(x & 0x80000000U) && count < 33)
+  {
+    x <<= 1;
+    count++;
+  }
+  return count;
+}
+   
+uint32_t __ctzdi2(uint32_t x)
+{
+  uint32_t count = 0;
+  while ( !(x & 0x000000001) && count <= 32)
+  {
+    x >>= 1;
+    count++;
+  }
+  return count;
+}
+
 typedef void (*user_entry_t)(void);
 
 BOOT_CODE VISIBLE void

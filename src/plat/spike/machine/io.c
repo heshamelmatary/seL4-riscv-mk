@@ -81,6 +81,8 @@
 #define UART_REG_MODEM_STATUS_DCD  (0x80)
 #define UART_REG_MODEM_STATUS_ANY_DELTA (0x0F)
 
+void sbi_console_putchar(unsigned long ch);
+
 static void uart_write_polled(char c)
 {
   unsigned char lsr;
@@ -195,6 +197,15 @@ int putchar(int ch)
   return 0;
 }
 
+static void htif_console_write(struct console *co, const char *buf, unsigned n)
+{
+    for ( ; n > 0; n--, buf++) {
+        if (*buf == '\n')
+            sbi_console_putchar('\r');
+        sbi_console_putchar(*buf);
+    }   
+}
+
 void
 qemu_uart_putchar(char c)
 {
@@ -203,7 +214,8 @@ qemu_uart_putchar(char c)
 
 void putDebugChar(unsigned char c)
 {
-  putchar(c);
+//  putchar(c);
+    sbi_console_putchar(c);
 }
 
 unsigned char getDebugChar(void)

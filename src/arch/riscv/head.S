@@ -22,9 +22,8 @@
 .extern trap_entry
 
 global_start:
-  la gp, 0
+  la gp, _gp
   la tp, test_area
-  
 
   la sp, (riscv_kernel_stack)
   jal init_kernel

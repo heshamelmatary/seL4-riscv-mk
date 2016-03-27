@@ -8,20 +8,20 @@
  * @TAG(GD_GPL)
  */
 
-OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv", "elf32-littleriscv")
+OUTPUT_FORMAT("elf64-littleriscv", "elf64-littleriscv", "elf64-littleriscv")
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* WARNING: constants also defined in plat/machine/hardware.h */
-KERNEL_BASE   = 0x40000000;
-PHYS_BASE     = 0x1000000;
-KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE;
+KERNEL_BASE   = 0xFFFFFFFF80000000;
+PHYS_BASE     = 0x0000000000a00000;
+KERNEL_OFFSET = KERNEL_BASE - PHYS_BASE; 
 
 SECTIONS
 {
     . = . + KERNEL_BASE;
 
-    .vector 0x40000000:
+    .vector 0xFFFFFFFF80000000:
     {
         *(.vector) 
     }
@@ -59,6 +59,16 @@ SECTIONS
         *(.text)
     }
 
+    /* Start of data section */
+    _sdata = .;
+    .sdata : {
+        _gp = . + 0x800;
+        *(.sdata*)
+    }
+    .srodata : {
+        *(.srodata*)
+    }
+
     .rodata . : AT(ADDR(.rodata) - KERNEL_OFFSET)
     {
         *(.rodata)
@@ -91,4 +101,9 @@ SECTIONS
         *(.note.gnu.build-id)
         *(.comment)
     }
+
+   /* Make this linker variable to make the assembler happy - used in trap.S and corresponds 
+    * to PPTR_KERNEL_STACK_TOP 
+    */
+   _kernel_stack = 0xFFFFFFFF8FFF1FEA;
 }
