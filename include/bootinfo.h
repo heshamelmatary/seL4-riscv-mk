@@ -72,6 +72,6 @@ typedef struct bi {
 } bi_t;
 
 /* adjust constants in config.h if this assert fails */
-compile_assert(bi_size, sizeof(bi_t) <= BIT(BI_FRAME_SIZE_BITS))
+//compile_assert(bi_size, sizeof(bi_t) <= BIT(BI_FRAME_SIZE_BITS))
 
 #endif

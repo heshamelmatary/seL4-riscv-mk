@@ -11,13 +11,13 @@
 #ifndef __PLAT_MACHINE_HARDWARE_H
 #define __PLAT_MACHINE_HARDWARE_H
 
-#define physBase          0x0000000000a00000UL
+#define physBase          0x0000000000a00000llu
 #define PADDR_BASE        physBase /* for compatibility with proofs */
-#define kernelBase        0xFFFFFFFF80000000UL
+#define kernelBase        0xFFFFFFFF80000000llu
 #define physMappingOffset (kernelBase - physBase)
 #define BASE_OFFSET       physMappingOffset
 #ifdef CONFIG_ROCKET_CHIP
-#define PPTR_TOP         0xFFFFFFFF8FE00000
+#define PPTR_TOP         0xFFFFFFFF8FE00000llu
 #else
 #define PPTR_TOP          0x4FC00000
 #endif

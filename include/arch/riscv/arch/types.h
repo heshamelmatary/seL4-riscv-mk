@@ -14,9 +14,9 @@
 #include <stdint.h>
 
 typedef uint32_t word_t;
-typedef uint32_t vptr_t;
-typedef uint32_t paddr_t;
-typedef uint32_t pptr_t;
+typedef uint64_t vptr_t;
+typedef uint64_t paddr_t;
+typedef uint64_t pptr_t;
 
 typedef uint32_t dev_id_t;
 typedef uint32_t cpu_id_t;

@@ -84,6 +84,7 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
     uint32_t idx = SV39_VIRT_TO_VPN0(vaddr) & 0x1FF;
 
     /* vaddr lies in the region the global PT covers */
+    //printf("vaddr = %p\nPPTR_TOP = %p\n", vaddr, PPTR_TOP);
     assert(vaddr >= PPTR_TOP);
     l3pt[idx] =     pte_new(
                    (SV39_VIRT_TO_VPN2(paddr)),
@@ -155,6 +156,8 @@ map_kernel_window(void)
                     );
     }
 
+    printf("phys << 21 = %p\n", phys << 21);
+    printf("PADDR_TOP = %p\n", PADDR_TOP);
     assert((phys << 21) == PADDR_TOP);
 
         /* point to the next last 4MB physical page index */
@@ -179,6 +182,7 @@ map_kernel_window(void)
     /* now start initialising the page table */
     memzero(l3pt, 1 << 12);
     
+    printf("Mapping kernel frame \n");
     /* map global page */
     map_kernel_frame(
        addrFromPPtr(riscvKSGlobalsFrame),
