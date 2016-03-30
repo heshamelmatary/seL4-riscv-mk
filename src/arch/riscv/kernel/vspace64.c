@@ -101,14 +101,15 @@ map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights)
 BOOT_CODE VISIBLE void
 map_kernel_window(void)
 {
-    paddr_t  phys;
+    uint32_t  phys;
     uint32_t idx, limit;
     pde_t    pde;
     long     i;
     uint32_t temp;
     /* mapping of kernelBase (virtual address) to kernel's physBase  */
     /* up to end of virtual address space minus 4MB */
-    phys = SV39_VIRT_TO_VPN1(physBase) & 0x1FF;
+    printf("physBase = %p\n", physBase);
+    phys = SV39_VIRT_TO_VPN1(physBase);
     idx  = VIRT1_TO_IDX(kernelBase);
     limit = idx + 63;
          
@@ -129,8 +130,10 @@ map_kernel_window(void)
     temp = (uint32_t) addrFromPPtr(l2pt) / 0x1000;
  
     printf("temp = 0x%x \n", temp);
+
+    /* Note, this assumes the kernel is mapped to 0xFFFFFFFF80000000 */
     /* 256 MiB kernel mapping (128 PTE * 2MiB per entry) */
-    l1pt[1] =  pde_new(
+    l1pt[510] =  pde_new(
                    (temp >> 18) & 0xF,
                    (temp >> 9) & 0x1FF,
                    (temp) & 0x1FF,
@@ -141,12 +144,13 @@ map_kernel_window(void)
                     1 /* valid */
                     );
     
+    printf("physBase = 0x%x\n", (((uint32_t)physBase) + (1 << 21)));
     for(i = 0; i < 127; i++, phys++)
     {
      /* The first two bits are always 0b11 since the MSB is 0xF */
      l2pt[i] = pte_new(
-                   (physBase >> 30) & 0x1FF,
-                   (phys) & 0x1FF,
+                   (SV39_VIRT_TO_VPN2(((uint32_t)physBase) + (i << 21))) & 0xF,
+                   (SV39_VIRT_TO_VPN1(((uint32_t)physBase) + (i << 21))) & 0x1FF,
                     0,
                     0,  /* sw */
                     0,  /* dirty */ 
@@ -156,7 +160,11 @@ map_kernel_window(void)
                     );
     }
 
-    printf("phys << 21 = %p\n", phys << 21);
+    /* Map SBI at the top - FIXME arbitrary address from bbl that would change */
+
+    *(((uint64_t *) &l1pt[511])) = (uint64_t) 0x00048e801;
+
+    printf("phys << 12 = %p\n", phys << 12);
     printf("PADDR_TOP = %p\n", PADDR_TOP);
     assert((phys << 21) == PADDR_TOP);
 
@@ -182,7 +190,6 @@ map_kernel_window(void)
     /* now start initialising the page table */
     memzero(l3pt, 1 << 12);
     
-    printf("Mapping kernel frame \n");
     /* map global page */
     map_kernel_frame(
        addrFromPPtr(riscvKSGlobalsFrame),
@@ -202,7 +209,8 @@ map_kernel_window(void)
        VMKernelOnly);
     */
 
-    write_csr(sptbr, addrFromPPtr(l1pt));
+    printf("Setting up sptbr \n");
+    write_csr(sptbr, addrFromPPtr(l1pt) >> 12);
 }
 
 BOOT_CODE void
