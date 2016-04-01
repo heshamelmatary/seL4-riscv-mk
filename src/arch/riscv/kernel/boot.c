@@ -233,8 +233,10 @@ init_freemem(region_t ui_reg)
             .end   = (pptr_t)ki_end
         },
         {
-            .start = ui_reg.start,
-            .end = ui_reg.end
+            //.start = ui_reg.start,
+            //.end = ui_reg.end
+            .start = (pptr_t)ki_end,
+            .end = (pptr_t)ki_end + 1024*1024
         }
     };
 
@@ -360,6 +362,7 @@ try_init_kernel(
         return false;
     }
 
+    printf("Creating domain cap \n");
   /* create the cap for managing thread domains */
     create_domain_cap(root_cnode_cap);
 
@@ -513,7 +516,7 @@ init_kernel(
     vptr_t  v_entry
 )
 {
-    printf( "********* seL4 microkernel on RISC-V 32-bit platform *********\n"); 
+    printf( "********* seL4 microkernel on RISC-V 64-bit platform *********\n"); 
 
     //init_plat();
     bool_t result;
