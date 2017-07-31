@@ -10,6 +10,7 @@
 
 The seL4 RISC-V specifics
 ===================
+IMPORTANT: This repository is OUTDAED! Have a look at the blog post updates (http://heshamelmatary.blogspot.com.au/) to get any up-to-date details and repos (if any).
 
 This repository is basically a fork from the master seL4 branch, containing 
 the seL4/RISC-V port code. Hopefully when it reaches a mature stage, it would
@@ -17,11 +18,11 @@ be upstream with seL4.
 
 Updates:
 ------------------
-
+  * Blog post updates -> http://heshamelmatary.blogspot.com.au/
   * [`[HOWTO] Build and run seL4 on RISC-V targets`][9]
   * [`seL4 runs on Rocket Chip (RISCV/FPGA)`][8]
   * [`seL4 on RISC-V is running SOS (Simple Operating System)`][7]
-  * [`Porting seL4 to RISC-V | Status Update #1`][6]
+  * [`Porting seL4 to RISC-V | Status Update #1`][6]d
   ![Alttext](http://1.bp.blogspot.com/--e2fEOJs5cs/VXWupBfj9aI/AAAAAAAAGVk/noRdzvT3amo/s1600/Selection_218.png "seL4 root task is saying hi!") 
 
   [6]: http://heshamelmatary.blogspot.co.uk/2015/05/porting-sel4-to-risc-v-status-report-no1.html
