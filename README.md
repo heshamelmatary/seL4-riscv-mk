@@ -10,6 +10,8 @@
 
 The seL4 RISC-V specifics
 ===================
+The port is merged upstream (https://github.com/seL4/seL4) as of April 2018.
+
 IMPORTANT: This repository is OUTDAED! Have a look at the blog post updates (http://heshamelmatary.blogspot.com.au/) to get any up-to-date details and repos (if any).
 
 This repository is basically a fork from the master seL4 branch, containing 
